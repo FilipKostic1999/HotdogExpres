@@ -42,6 +42,7 @@ class LoginFragment : Fragment() {
     lateinit var youAreLoggedTxt: TextView
     lateinit var userImg: ImageView
     lateinit var hotDogImg: ImageView
+    lateinit var logOutBtn: Button
 
 
     override fun onCreateView(
@@ -77,6 +78,14 @@ class LoginFragment : Fragment() {
         youAreLoggedTxt = view.findViewById(R.id.youAreLoggedTxt)
         userImg = view.findViewById(R.id.userImg)
         hotDogImg = view.findViewById(R.id.hotDogImg)
+        logOutBtn = view.findViewById(R.id.logOutBtn)
+
+
+
+        showLayout()
+
+
+
 
         // Set up click listener for the button
         signUpTxt.setOnClickListener {
@@ -92,72 +101,89 @@ class LoginFragment : Fragment() {
         }
 
         logInBtn.setOnClickListener {
-            showInloggedView()
+            logIn()
+        }
+
+        logOutBtn.setOnClickListener {
+            auth.signOut()
+            showOnlyLogIn()
         }
 
     }
 
-    fun showOnlyLogIn() {
-        nameEt.visibility = View.GONE
-        surnameEt.visibility = View.GONE
-        signUpEmailEt.visibility = View.GONE
-        signUpPasswordEt.visibility = View.GONE
-        signUpConfPasswordEt.visibility = View.GONE
-        signUpBtn.visibility = View.GONE
-        logInTxt.visibility = View.GONE
-        signUpTitleTxt.visibility = View.GONE
-        loggedInImg.visibility = View.GONE
-        youAreLoggedTxt.visibility = View.GONE
 
-        logInTitleTxt.visibility = View.VISIBLE
-        logInEmailEt.visibility = View.VISIBLE
-        logInPasswordEt.visibility = View.VISIBLE
-        logInBtn.visibility = View.VISIBLE
-        signUpTxt.visibility = View.VISIBLE
+
+    fun showOnlyLogIn() {
+            nameEt.visibility = View.GONE
+            surnameEt.visibility = View.GONE
+            signUpEmailEt.visibility = View.GONE
+            signUpPasswordEt.visibility = View.GONE
+            signUpConfPasswordEt.visibility = View.GONE
+            signUpBtn.visibility = View.GONE
+            logInTxt.visibility = View.GONE
+            signUpTitleTxt.visibility = View.GONE
+            loggedInImg.visibility = View.GONE
+            youAreLoggedTxt.visibility = View.GONE
+            logOutBtn.visibility = View.GONE
+
+            logInTitleTxt.visibility = View.VISIBLE
+            logInEmailEt.visibility = View.VISIBLE
+            logInPasswordEt.visibility = View.VISIBLE
+            logInBtn.visibility = View.VISIBLE
+            signUpTxt.visibility = View.VISIBLE
+            hotDogImg.visibility = View.VISIBLE
     }
 
 
     fun showOnlySignUp() {
-        logInTitleTxt.visibility = View.GONE
-        logInEmailEt.visibility = View.GONE
-        logInPasswordEt.visibility = View.GONE
-        logInBtn.visibility = View.GONE
-        signUpTxt.visibility = View.GONE
-        loggedInImg.visibility = View.GONE
-        youAreLoggedTxt.visibility = View.GONE
+            logInTitleTxt.visibility = View.GONE
+            logInEmailEt.visibility = View.GONE
+            logInPasswordEt.visibility = View.GONE
+            logInBtn.visibility = View.GONE
+            signUpTxt.visibility = View.GONE
+            loggedInImg.visibility = View.GONE
+            youAreLoggedTxt.visibility = View.GONE
+            logOutBtn.visibility = View.GONE
 
-        nameEt.visibility = View.VISIBLE
-        surnameEt.visibility = View.VISIBLE
-        signUpEmailEt.visibility = View.VISIBLE
-        signUpPasswordEt.visibility = View.VISIBLE
-        signUpConfPasswordEt.visibility = View.VISIBLE
-        signUpBtn.visibility = View.VISIBLE
-        logInTxt.visibility = View.VISIBLE
-        signUpTitleTxt.visibility = View.VISIBLE
+            nameEt.visibility = View.VISIBLE
+            surnameEt.visibility = View.VISIBLE
+            signUpEmailEt.visibility = View.VISIBLE
+            signUpPasswordEt.visibility = View.VISIBLE
+            signUpConfPasswordEt.visibility = View.VISIBLE
+            signUpBtn.visibility = View.VISIBLE
+            logInTxt.visibility = View.VISIBLE
+            signUpTitleTxt.visibility = View.VISIBLE
+            hotDogImg.visibility = View.VISIBLE
     }
 
 
     fun showInloggedView() {
-        nameEt.visibility = View.GONE
-        surnameEt.visibility = View.GONE
-        signUpEmailEt.visibility = View.GONE
-        signUpPasswordEt.visibility = View.GONE
-        signUpConfPasswordEt.visibility = View.GONE
-        signUpBtn.visibility = View.GONE
-        logInTxt.visibility = View.GONE
-        signUpTitleTxt.visibility = View.GONE
-        logInTitleTxt.visibility = View.GONE
-        logInEmailEt.visibility = View.GONE
-        logInPasswordEt.visibility = View.GONE
-        logInBtn.visibility = View.GONE
-        signUpTxt.visibility = View.GONE
-        loggedInImg.visibility = View.GONE
-        youAreLoggedTxt.visibility = View.GONE
-        userImg.visibility = View.GONE
-        hotDogImg.visibility = View.GONE
 
-        loggedInImg.visibility = View.VISIBLE
-        youAreLoggedTxt.visibility = View.VISIBLE
+        val user = auth.currentUser
+
+        if (user != null) {
+            nameEt.visibility = View.GONE
+            surnameEt.visibility = View.GONE
+            signUpEmailEt.visibility = View.GONE
+            signUpPasswordEt.visibility = View.GONE
+            signUpConfPasswordEt.visibility = View.GONE
+            signUpBtn.visibility = View.GONE
+            logInTxt.visibility = View.GONE
+            signUpTitleTxt.visibility = View.GONE
+            logInTitleTxt.visibility = View.GONE
+            logInEmailEt.visibility = View.GONE
+            logInPasswordEt.visibility = View.GONE
+            logInBtn.visibility = View.GONE
+            signUpTxt.visibility = View.GONE
+            loggedInImg.visibility = View.GONE
+            youAreLoggedTxt.visibility = View.GONE
+            userImg.visibility = View.GONE
+            hotDogImg.visibility = View.GONE
+
+            loggedInImg.visibility = View.VISIBLE
+            youAreLoggedTxt.visibility = View.VISIBLE
+            logOutBtn.visibility = View.VISIBLE
+        }
     }
 
 
@@ -216,8 +242,8 @@ class LoginFragment : Fragment() {
 
                                     database.collection("Hotdog Expres")
                                         .document("Users")
-                                        .collection("User profile")
-                                        .document(user.uid).set(userData)
+                                        .collection(user.uid)
+                                        .document("User profile").set(userData)
                                         .addOnSuccessListener {
                                             // Document successfully written
                                             Toast.makeText(requireContext(), "Profile created successfully", Toast.LENGTH_SHORT).show()
@@ -241,6 +267,17 @@ class LoginFragment : Fragment() {
                 Toast.makeText(requireContext(), "There are empty fields", Toast.LENGTH_SHORT).show()
             }
 
+    }
+
+
+
+    fun showLayout() {
+        val user = auth.currentUser
+        if (user != null) {
+            showInloggedView()
+        } else {
+            showOnlyLogIn()
+        }
     }
 
 

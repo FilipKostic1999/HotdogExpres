@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 
 
@@ -24,17 +25,19 @@ class ProfileFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     lateinit var database : FirebaseFirestore
 
-    private lateinit var nameEt: EditText
-    private lateinit var cardNumber: EditText
-    private lateinit var surname: EditText
-    private lateinit var country: EditText
-    private lateinit var dateOfBirth: EditText
-    private lateinit var email: EditText
-    private lateinit var address: EditText
-    private lateinit var phoneNumber: EditText
+    private lateinit var nameEt: TextView
+    private lateinit var cardNumber: TextView
+    private lateinit var surname: TextView
+    private lateinit var country: TextView
+    private lateinit var dateOfBirth: TextView
+    private lateinit var email: TextView
+    private lateinit var address: TextView
+    private lateinit var phoneNumber: TextView
     private lateinit var logInImg: ImageView
     private lateinit var logInOrCreateTxt: TextView
     private lateinit var saveBtn: Button
+
+    lateinit var profileUser: userProfile
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -91,35 +94,11 @@ class ProfileFragment : Fragment() {
                 when (tab.position) {
 
                     0 -> {
-                        if (user != null) {
-                            nameEt.visibility = View.VISIBLE
-                            surname.visibility = View.VISIBLE
-                            country.visibility = View.VISIBLE
-                            email.visibility = View.VISIBLE
-                            address.visibility = View.VISIBLE
-                            dateOfBirth.visibility = View.VISIBLE
-                            phoneNumber.visibility = View.VISIBLE
-                            saveBtn.visibility = View.VISIBLE
-                            logInImg.visibility = View.GONE
-                            logInOrCreateTxt.visibility = View.GONE
-                            cardNumber.visibility = View.GONE
-                        }
+                        showAccountDetails()
                     }
 
                     1 -> {
-                        if (user != null) {
-                            cardNumber.visibility = View.VISIBLE
-                            nameEt.visibility = View.GONE
-                            surname.visibility = View.GONE
-                            country.visibility = View.GONE
-                            email.visibility = View.GONE
-                            address.visibility = View.GONE
-                            dateOfBirth.visibility = View.GONE
-                            phoneNumber.visibility = View.GONE
-                            saveBtn.visibility = View.GONE
-                            logInImg.visibility = View.GONE
-                            logInOrCreateTxt.visibility = View.GONE
-                        }
+                        showCreditCardInfo()
                     }
                 }
             }
@@ -134,8 +113,87 @@ class ProfileFragment : Fragment() {
         })
 
 
-        if (user == null) {
+        showLogInRequest()
 
+
+
+        if (user != null) {
+            database.collection("Hotdog Expres").document("Users")
+                .collection(user.uid)
+                .addSnapshotListener { snapshot, e ->
+                    if (snapshot != null) {
+
+                        if (snapshot.isEmpty) {
+                            // No documents in the snapshot, enable the button
+
+                        } else {
+                            for (document in snapshot.documents) {
+                                profileUser = document.toObject()!!
+                                nameEt.text = "${profileUser.name}"
+                                surname.text = "${profileUser.surname}"
+                                email.text = "${profileUser.email}"
+                                address.text = "${profileUser.adress}"
+                                phoneNumber.text = "${profileUser.phoneNumber}"
+                                dateOfBirth.text = "${profileUser.dateBirth}"
+                                country.text = "${profileUser.country}"
+                            }
+                        }
+                    }
+                }
+        }
+
+
+        saveBtn.setOnClickListener {
+            save()
+        }
+
+
+
+    }
+
+
+
+
+    fun showAccountDetails() {
+        val user = auth.currentUser
+        if (user != null) {
+            nameEt.visibility = View.VISIBLE
+            surname.visibility = View.VISIBLE
+            country.visibility = View.VISIBLE
+            email.visibility = View.VISIBLE
+            address.visibility = View.VISIBLE
+            dateOfBirth.visibility = View.VISIBLE
+            phoneNumber.visibility = View.VISIBLE
+            saveBtn.visibility = View.VISIBLE
+            logInImg.visibility = View.GONE
+            logInOrCreateTxt.visibility = View.GONE
+            cardNumber.visibility = View.GONE
+        }
+    }
+
+
+
+    fun showCreditCardInfo() {
+        val user = auth.currentUser
+        if (user != null) {
+            cardNumber.visibility = View.VISIBLE
+            nameEt.visibility = View.GONE
+            surname.visibility = View.GONE
+            country.visibility = View.GONE
+            email.visibility = View.GONE
+            address.visibility = View.GONE
+            dateOfBirth.visibility = View.GONE
+            phoneNumber.visibility = View.GONE
+            saveBtn.visibility = View.GONE
+            logInImg.visibility = View.GONE
+            logInOrCreateTxt.visibility = View.GONE
+        }
+    }
+
+
+    fun showLogInRequest() {
+        val user = auth.currentUser
+        if (user == null) {
             logInImg.visibility = View.VISIBLE
             logInOrCreateTxt.visibility = View.VISIBLE
 
@@ -149,9 +207,9 @@ class ProfileFragment : Fragment() {
             phoneNumber.visibility = View.GONE
             saveBtn.visibility = View.GONE
         }
-
-
     }
+
+
 
 
     fun save() {
@@ -166,8 +224,8 @@ class ProfileFragment : Fragment() {
         // Get a reference to the Firestore collection
         if (user != null) {
             database.collection("Hotdog Expres")
-                .document("Users").collection("User profile")
-                .document(user.uid).set(userProfile)
+                .document("Users").collection(user.uid)
+                .document("User profile").set(userProfile)
                 .addOnSuccessListener { documentReference ->
                     // Document added successfully
                     Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT).show()
