@@ -2,13 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/nav_home"
-        android:icon="@drawable/home_img"
-        android:title="Home" />
+        android:id="@+id/nav_map"
+        android:icon="@drawable/maps_icon"
+        android:title="Maps" />
 
     <item
-        android:id="@+id/nav_main_activity"
+        android:id="@+id/nav_profile"
         android:icon="@drawable/user_img"
         android:title="Profile"/>
+
+    <item
+        android:id="@+id/nav_login"
+        android:icon="@drawable/login_img"
+        android:title="Login"/>
 </menu>
 

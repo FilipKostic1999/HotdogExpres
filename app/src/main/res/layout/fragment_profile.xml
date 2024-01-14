@@ -20,7 +20,7 @@
         android:layout_width="409dp"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
-        android:backgroundTint="#FF9800"
+        android:backgroundTint="#FFAA26"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintEnd_toEndOf="parent"
@@ -70,6 +70,7 @@
                 android:layout_marginStart="12dp"
                 android:layout_marginTop="100dp"
                 android:hint="Name"
+                android:textAlignment="center"
                 android:background="@drawable/rounded_edittext_bg"
                 android:visibility="visible"
                 app:layout_constraintStart_toStartOf="parent"
@@ -84,10 +85,83 @@
                 android:layout_marginStart="200dp"
                 android:layout_marginTop="100dp"
                 android:hint="Surname"
+                android:textAlignment="center"
                 android:background="@drawable/rounded_edittext_bg"
                 android:visibility="visible"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+
+            <EditText
+                android:id="@+id/dateOfBirthEt"
+                android:layout_width="150dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="180dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:hint="Date of birth"
+                android:textAlignment="center"
+                android:visibility="visible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+            <EditText
+                android:id="@+id/adressEt"
+                android:layout_width="300dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="260dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:hint="Adress"
+                android:textAlignment="center"
+                android:visibility="visible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+            <EditText
+                android:id="@+id/countryEt"
+                android:layout_width="150dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="200dp"
+                android:layout_marginTop="180dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:hint="Country"
+                android:textAlignment="center"
+                android:visibility="visible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <EditText
+                android:id="@+id/emailEt"
+                android:layout_width="300dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="340dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:hint="Email"
+                android:textAlignment="center"
+                android:visibility="visible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+
+            <EditText
+                android:id="@+id/phoneNumberEt"
+                android:layout_width="300dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="420dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:hint="Phone number"
+                android:textAlignment="center"
+                android:visibility="visible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
 
 
 
@@ -98,6 +172,7 @@
                 android:layout_marginStart="12dp"
                 android:layout_marginTop="100dp"
                 android:hint="Card number"
+                android:textAlignment="center"
                 android:background="@drawable/rounded_edittext_bg"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
@@ -115,6 +190,42 @@
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/saveBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="120dp"
+                android:layout_marginTop="48dp"
+                android:backgroundTint="#8BC34A"
+                android:text="Save changes"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/phoneNumberEt" />
+
+            <ImageView
+                android:id="@+id/logInImg"
+                android:layout_width="170dp"
+                android:layout_height="140dp"
+                android:layout_marginStart="104dp"
+                android:layout_marginTop="80dp"
+                android:visibility="invisible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView4"
+                app:srcCompat="@drawable/create_profile_icon" />
+
+            <TextView
+                android:id="@+id/logInOrCreateTxt"
+                android:layout_width="267dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="56dp"
+                android:layout_marginTop="24dp"
+                android:text="Log in or create account"
+                android:visibility="invisible"
+                android:textAlignment="center"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/logInImg" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

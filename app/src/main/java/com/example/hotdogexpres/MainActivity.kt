@@ -14,18 +14,25 @@ class MainActivity : AppCompatActivity() {
 
         // Set the default fragment when the app starts
         if (savedInstanceState == null) {
-            replaceFragment(HomeFragment())
-            bottomNavigationView.menu.findItem(R.id.nav_home)?.isChecked = true
+            replaceFragment(MapsFragment())
+            bottomNavigationView.menu.findItem(R.id.nav_map)?.isChecked = true
         }
 
         bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.nav_home -> {
-                    replaceFragment(HomeFragment())
+                R.id.nav_map -> {
+                    replaceFragment(MapsFragment())
+                    setActivityBackgroundColor(R.color.white)
                     true
                 }
-                R.id.nav_main_activity -> {
+                R.id.nav_profile -> {
                     replaceFragment(ProfileFragment())
+                    setActivityBackgroundColor(R.color.white)
+                    true
+                }
+                R.id.nav_login -> {
+                    replaceFragment(LoginFragment())
+                    setActivityBackgroundColor(R.color.orange)
                     true
                 }
                 // Add more cases for other fragments if needed
@@ -40,6 +47,11 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commit()
+    }
+
+    private fun setActivityBackgroundColor(colorResId: Int) {
+        val color = resources.getColor(colorResId, theme)
+        window.decorView.setBackgroundColor(color)
     }
 }
 

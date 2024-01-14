@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "68615504461",
+    "project_id": "all-apps-6fc26",
+    "storage_bucket": "all-apps-6fc26.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:68615504461:android:ef546d7ccd4196257c5204",
+        "android_client_info": {
+          "package_name": "com.example.hotdogexpres"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVkINzOg7QwkTSRZli6wyarbTe_uguiko"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

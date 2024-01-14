@@ -8,7 +8,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 
-class HomeFragment : Fragment() {
+class MapsFragment : Fragment() {
     private lateinit var textView: TextView
     private lateinit var interactableButton: Button
 
