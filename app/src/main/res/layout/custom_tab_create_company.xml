@@ -9,12 +9,12 @@
     <ImageView
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:src="@android:drawable/ic_menu_sort_by_size"
+        android:src="@drawable/my_business_img"
         android:layout_marginEnd="8dp" />
 
     <!-- Tab text -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Credit card" />
+        android:text="My business" />
 </LinearLayout>

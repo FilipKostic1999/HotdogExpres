@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.hotdogexpres.classes.fastfoodPlace
 import com.example.hotdogexpres.classes.userProfile
 import com.google.android.material.tabs.TabLayout
 import com.google.firebase.auth.FirebaseAuth
@@ -35,8 +36,14 @@ class ProfileFragment : Fragment() {
     private lateinit var logInImg: ImageView
     private lateinit var logInOrCreateTxt: TextView
     private lateinit var saveBtn: Button
-
+    private lateinit var nameCompanyEt: TextView
+    private lateinit var typeActivityEt: TextView
+    private lateinit var companyAddresEt: TextView
+    private lateinit var createBusinessBtn: Button
     lateinit var profileUser: userProfile
+
+    var checkMark = 0
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,22 +74,26 @@ class ProfileFragment : Fragment() {
         saveBtn = view.findViewById(R.id.saveBtn)
         logInImg = view.findViewById(R.id.logInImg)
         logInOrCreateTxt = view.findViewById(R.id.logInOrCreateTxt)
+        nameCompanyEt = view.findViewById(R.id.nameCompanyEt)
+        typeActivityEt = view.findViewById(R.id.typeActivityEt)
+        companyAddresEt = view.findViewById(R.id.companyAddresEt)
+        createBusinessBtn = view.findViewById(R.id.createBusinessBtn)
 
 
 
         val accountDetailsTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_account_details, null)
-        val creditCardTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_creditcard, null)
+        val createCompanyTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_create_company, null)
         // Add tabs with custom views
         val accountDetailsTxt = tabLayout.newTab()
         accountDetailsTxt.customView = accountDetailsTab
         tabLayout.addTab(accountDetailsTxt)
 
-        val creditCardTxt = tabLayout.newTab()
-        creditCardTxt.customView = creditCardTab
-        tabLayout.addTab(creditCardTxt)
+        val createCompanyTxt = tabLayout.newTab()
+        createCompanyTxt.customView = createCompanyTab
+        tabLayout.addTab(createCompanyTxt)
 
         saveBtn.setOnClickListener {
-            save()
+            saveUser()
         }
 
 
@@ -143,9 +154,12 @@ class ProfileFragment : Fragment() {
 
 
         saveBtn.setOnClickListener {
-            save()
+            saveUser()
         }
 
+        createBusinessBtn.setOnClickListener {
+            createCompany()
+        }
 
 
     }
@@ -164,9 +178,14 @@ class ProfileFragment : Fragment() {
             dateOfBirth.visibility = View.VISIBLE
             phoneNumber.visibility = View.VISIBLE
             saveBtn.visibility = View.VISIBLE
+
             logInImg.visibility = View.GONE
             logInOrCreateTxt.visibility = View.GONE
             cardNumber.visibility = View.GONE
+            nameCompanyEt.visibility = View.GONE
+            typeActivityEt.visibility = View.GONE
+            companyAddresEt.visibility = View.GONE
+            createBusinessBtn.visibility = View.GONE
         }
     }
 
@@ -176,6 +195,11 @@ class ProfileFragment : Fragment() {
         val user = auth.currentUser
         if (user != null) {
             cardNumber.visibility = View.VISIBLE
+            nameCompanyEt.visibility = View.VISIBLE
+            typeActivityEt.visibility = View.VISIBLE
+            companyAddresEt.visibility = View.VISIBLE
+            createBusinessBtn.visibility = View.VISIBLE
+
             nameEt.visibility = View.GONE
             surname.visibility = View.GONE
             country.visibility = View.GONE
@@ -205,20 +229,27 @@ class ProfileFragment : Fragment() {
             dateOfBirth.visibility = View.GONE
             phoneNumber.visibility = View.GONE
             saveBtn.visibility = View.GONE
+            nameCompanyEt.visibility = View.GONE
+            typeActivityEt.visibility = View.GONE
+            companyAddresEt.visibility = View.GONE
+            createBusinessBtn.visibility = View.GONE
         }
     }
 
 
 
 
-    fun save() {
+    fun saveUser() {
 
         val user = auth.currentUser
 
         val userProfile = userProfile(name = nameEt.text.toString(),
             surname = surname.text.toString(), email = email.text.toString(),
             adress = address.text.toString(), phoneNumber = phoneNumber.text.toString(),
-            country = country.text.toString(), dateBirth = dateOfBirth.text.toString())
+            country = country.text.toString(), dateBirth = dateOfBirth.text.toString(),
+            0)
+
+        userProfile.checkmarksAvailable += checkMark
 
         // Get a reference to the Firestore collection
         if (user != null) {
@@ -235,6 +266,41 @@ class ProfileFragment : Fragment() {
                 }
         }
     }
+
+
+
+    fun createCompany() {
+        val user = auth.currentUser
+
+        val company = fastfoodPlace(0.0, 0.0,
+            nameCompanyEt.text.toString(), "",
+            typeActivityEt.text.toString(), companyAddresEt.text.toString())
+
+
+        // Get a reference to the Firestore collection
+        if (user != null) {
+            database.collection("Hotdog Expres").document("Users")
+                .collection(user.uid).document("User profile")
+                .collection("User companies")
+                .add(company)
+                .addOnSuccessListener { documentReference ->
+                    // Document added successfully
+                    checkMark++
+                    saveUser()
+                    checkMark--
+                    Toast.makeText(requireContext(), "Company created!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    // Error adding document
+                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                }
+        }
+
+
+
+    }
+
+
 
 
 }
