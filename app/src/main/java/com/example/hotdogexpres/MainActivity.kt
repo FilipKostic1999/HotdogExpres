@@ -11,7 +11,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-
+        setActivityBackgroundColor(R.color.orange)
         // Set the default fragment when the app starts
         if (savedInstanceState == null) {
             replaceFragment(MapsFragment())
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.nav_map -> {
                     replaceFragment(MapsFragment())
-                    setActivityBackgroundColor(R.color.white)
+                    setActivityBackgroundColor(R.color.orange)
                     true
                 }
                 R.id.nav_profile -> {
