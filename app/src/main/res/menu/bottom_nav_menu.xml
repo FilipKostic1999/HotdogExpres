@@ -16,9 +16,6 @@
         android:icon="@drawable/login_img"
         android:title="Login"/>
 
-    <item
-        android:id="@+id/nav_myBusiness"
-        android:icon="@drawable/my_business_img"
-        android:title="My business"/>
+
 </menu>
 

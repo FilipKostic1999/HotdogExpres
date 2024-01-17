@@ -10,14 +10,21 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.gms.maps.MapView
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
-import android.widget.ScrollView
+import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.hotdogexpres.adapters.reviewAdapter
 import com.example.hotdogexpres.classes.fastfoodPlace
+import com.example.hotdogexpres.classes.review
 import com.example.hotdogexpres.classes.userProfile
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -43,20 +50,34 @@ class MapsFragment : Fragment() {
     lateinit var takeMeThereBtn: Button
     lateinit var typeFastFoodPlaceTxt: TextView
     lateinit var addresTxt: TextView
+    lateinit var deleteImg: ImageView
     private val LOCATION_PERMISSION_REQUEST_CODE = 123
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val hotDogTruckMarkers = mutableListOf<fastfoodPlace>()
     var fastFoodPlace = fastfoodPlace(0.0, 0.0,
-        "", "", "", "")
-    var fastFoodPlaceFetchedData = fastfoodPlace(0.0, 0.0,
-        "", "", "", "")
+        "", "", "", "", "")
+   var lat = 0.0
+    var long = 0.0
+
+    lateinit var fastFoodPlaceFetchedData: fastfoodPlace
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var myAdapter: reviewAdapter
+    private lateinit var listOfReviews : ArrayList<review>
+    lateinit var reviewItem : review
+    lateinit var writeReviewBtn: Button
+    lateinit var ratingBar: RatingBar
+    var selectedCompanyId = "id"
+    var review = review("Alex", "Good place",
+        3.14f, "")
+
+
 
     private lateinit var auth: FirebaseAuth
     lateinit var database : FirebaseFirestore
 
     private lateinit var destinationLatLng: LatLng
     var userProfile = userProfile("", "", "",
-        "", "", "", "", 0)
+        "", "", "", "", "")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -75,6 +96,13 @@ class MapsFragment : Fragment() {
         val user = auth.currentUser
 
 
+        recyclerView = view.findViewById(R.id.reviewRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.setHasFixedSize(true)
+        listOfReviews = arrayListOf()
+        myAdapter = reviewAdapter(listOfReviews)
+        recyclerView.adapter = myAdapter
+       // myAdapter.setOnViewClickListener(requireContext())
 
         mapView = view.findViewById(R.id.mapView)
         mapView.onCreate(savedInstanceState)
@@ -83,6 +111,9 @@ class MapsFragment : Fragment() {
         takeMeThereBtn = view.findViewById(R.id.takeMeThereBtn)
         typeFastFoodPlaceTxt = view.findViewById(R.id.typeFastFoodPlaceTxt)
         addresTxt = view.findViewById(R.id.addresTxt)
+        deleteImg = view.findViewById(R.id.deleteImg)
+        writeReviewBtn = view.findViewById(R.id.writeReviewBtn)
+        ratingBar = view.findViewById(R.id.ratingBar)
 
         // Check and request location permission
         checkLocationPermission()
@@ -94,28 +125,62 @@ class MapsFragment : Fragment() {
             // Enable the user's location on the map
             googleMap.isMyLocationEnabled = true
 
-            // Set a listener for the location button
+
+
             googleMap.setOnMyLocationButtonClickListener {
-                // Handle the location button click
-                // Show the user's location on the map without adding a new marker
                 showCurrentLocation(googleMap)
                 true
             }
 
-            // Set a listener for map clicks
-            googleMap.setOnMapClickListener { latLng ->
-                // Add a new HotDogTruck marker to the list and display a red marker
-                    fastFoodPlace = fastfoodPlace(latLng.latitude, latLng.longitude,
-                    fastFoodPlaceFetchedData.fastfoodPlaceName,
-                        "",
-                    fastFoodPlaceFetchedData.typeFastfood,
-                        fastFoodPlaceFetchedData.fastFoodAddres)
 
-                if (userProfile.checkmarksAvailable > 0 && user != null) {
+            googleMap.setOnMapClickListener { latLng ->
+
+                lat = latLng.latitude
+                long = latLng.longitude
+
+                if (user != null) {
                     saveFastfoodPlace()
                 }
-               // addRedMarker(googleMap, hotDogTruck)
             }
+
+
+
+            writeReviewBtn.setOnClickListener {
+                val builder = AlertDialog.Builder(requireContext())
+                val inflater = LayoutInflater.from(requireContext())
+                val dialogView = inflater.inflate(R.layout.dialog_write_new_review, null)
+
+                builder.setView(dialogView)
+
+                // Find the RatingBar in the dialogView
+                val ratingBar = dialogView.findViewById<RatingBar>(R.id.ratingBar)
+
+                // Set up the buttons
+                builder.setPositiveButton("Save") { _, _ ->
+                    val inputView = dialogView.findViewById<EditText>(R.id.reviewEditText)
+                    val rating = ratingBar.rating
+                    saveReview(inputView, rating)
+                }
+
+                builder.setNegativeButton("Cancel") { dialog, _ ->
+                    // Cancel the review writing
+                    dialog.dismiss()
+                }
+
+                // Create and show the dialog
+                val dialog = builder.create()
+                dialog.show()
+            }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -135,7 +200,11 @@ class MapsFragment : Fragment() {
                         } else {
                             for (document in snapshot.documents) {
                                 val fastfood = document.toObject<fastfoodPlace>()!!
-                                hotDogTruckMarkers.add(fastfood)
+                                if (fastfood.latitude == 0.0 && fastfood.longitude == 0.0) {
+                                    // do nothing
+                                } else {
+                                    hotDogTruckMarkers.add(fastfood)
+                                }
                             }
 
                             googleMap.clear()
@@ -170,6 +239,7 @@ class MapsFragment : Fragment() {
 
 
 
+
             if (user != null) {
                 database.collection("Hotdog Expres").document("Users")
                     .collection(user.uid).document("User profile")
@@ -194,6 +264,35 @@ class MapsFragment : Fragment() {
 
 
 
+            deleteImg.setOnClickListener {
+                /*
+                for (place in hotDogTruckMarkers) {
+                    if (place.fastfoodPlaceName ==
+                        fastFoodPlaceFetchedData.fastfoodPlaceName) {
+                        if (user != null) {
+                            database.collection("Hotdog Expres")
+                                .document("Fastfood places")
+                                .collection("All")
+                                .document(place.fastfoodPlaceName)
+                                .delete()
+                                .addOnSuccessListener { documentReference ->
+                                    Toast.makeText(requireContext(), "Company removed from map!", Toast.LENGTH_SHORT).show()
+                                }
+                                .addOnFailureListener { e ->
+                                    // Error adding document
+                                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                    }
+                }
+
+
+
+                 */
+            }
+
+
+
 
             googleMap.setOnMarkerClickListener { marker ->
                 val title = marker.title
@@ -202,6 +301,7 @@ class MapsFragment : Fragment() {
                         textViewFastFoodName.text = "$title"
                         addresTxt.text = "Addres: ${place.fastFoodAddres}"  // Use 'place' instead of 'fastFoodPlace'
                         typeFastFoodPlaceTxt.text = "Type: ${place.typeFastfood}"
+                        selectedCompanyId = place.documentId
 
                         whiteRectangleImg.visibility = View.VISIBLE
                         textViewFastFoodName.visibility = View.VISIBLE
@@ -210,6 +310,7 @@ class MapsFragment : Fragment() {
                         takeMeThereBtn.visibility = View.VISIBLE
 
                         destinationLatLng = marker.position
+                        getReviews()
                     }
                 }
                 true
@@ -246,6 +347,10 @@ class MapsFragment : Fragment() {
                         }
 
              */
+
+
+
+
         }
     }
 
@@ -356,49 +461,104 @@ class MapsFragment : Fragment() {
 
 
 
+    @SuppressLint("SuspiciousIndentation")
     fun saveFastfoodPlace() {
 
         val user = auth.currentUser
 
+        if (user != null) {
 
-        // Get a reference to the Firestore collection
+            fastFoodPlace.latitude = lat
+            fastFoodPlace.longitude = long
+            fastFoodPlace.documentId = userProfile.userId
+            fastFoodPlace.fastfoodPlaceName = fastFoodPlaceFetchedData.fastfoodPlaceName
+            fastFoodPlace.typeFastfood = fastFoodPlaceFetchedData.typeFastfood
+            fastFoodPlace.fastFoodAddres = fastFoodPlaceFetchedData.fastFoodAddres
+
+            // Get a reference to the Firestore collection
             database.collection("Hotdog Expres")
                 .document("Fastfood places").collection("All")
-                .add(fastFoodPlace)
+                .document(userProfile.userId)
+                .set(fastFoodPlace)
                 .addOnSuccessListener { documentReference ->
                     // Document added successfully
                     Toast.makeText(requireContext(), "Place saved!", Toast.LENGTH_SHORT).show()
-                    saveUser()
                 }
                 .addOnFailureListener { e ->
                     // Error adding document
-                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
-                }
-    }
-
-
-
-    fun saveUser() {
-
-        val user = auth.currentUser
-
-        userProfile.checkmarksAvailable --
-
-        // Get a reference to the Firestore collection
-        if (user != null) {
-            database.collection("Hotdog Expres")
-                .document("Users").collection(user.uid)
-                .document("User profile").set(userProfile)
-                .addOnSuccessListener { documentReference ->
-                    // Document added successfully
-                    Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener { e ->
-                    // Error adding document
-                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                        .show()
                 }
         }
     }
+
+
+
+
+
+
+
+    fun getReviews() {
+        database.collection("Hotdog Expres")
+            .document("Fastfood places")
+            .collection("All")
+            .document(selectedCompanyId)
+            .collection("Company reviews")
+            .get()
+            .addOnSuccessListener { documents ->
+                if (documents.isEmpty) {
+                    // No documents in the snapshot, handle accordingly
+
+                } else {
+                    listOfReviews.clear()
+                    var totalReviews = 0
+                    var summedRatings = 0f
+                    for (document in documents) {
+                        val review = document.toObject<review>()
+                        totalReviews++
+                        summedRatings += review.reviewRating
+                        listOfReviews.add(review)
+                    }
+                    val totalRating = summedRatings/totalReviews
+                    ratingBar.rating = totalRating
+                    myAdapter.notifyDataSetChanged()
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Handle errors
+            }
+
+    }
+
+
+
+
+    private fun saveReview(inputView: EditText, rating: Float) {
+        // Retrieve user input from the inputView
+        val user = auth.currentUser
+        val reviewText = inputView.text.toString()
+        val review = review(userProfile.name, reviewText,
+            rating, userProfile.userId)
+
+
+        if (user != null) {
+            database.collection("Hotdog Expres")
+                .document("Fastfood places").collection("All")
+                .document(selectedCompanyId).collection("Company reviews")
+                .document(userProfile.userId).set(review)
+                .addOnSuccessListener { documentReference ->
+                    // Document added successfully
+                    Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    // Error adding document
+                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                        .show()
+                }
+        }
+    }
+
+
 
 
 

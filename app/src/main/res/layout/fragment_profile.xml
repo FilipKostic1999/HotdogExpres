@@ -162,24 +162,21 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
 
-
-
-
             <EditText
                 android:id="@+id/cardNumberEt"
                 android:layout_width="350dp"
                 android:layout_height="45dp"
                 android:layout_marginStart="12dp"
-                android:layout_marginTop="100dp"
+                android:layout_marginTop="340dp"
+                android:background="@drawable/rounded_edittext_bg"
                 android:hint="Card number"
                 android:textAlignment="center"
-                android:background="@drawable/rounded_edittext_bg"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/textView4"
+                android:id="@+id/titleTxt"
                 android:layout_width="226dp"
                 android:layout_height="59dp"
                 android:layout_marginStart="76dp"
@@ -207,10 +204,10 @@
                 android:layout_width="170dp"
                 android:layout_height="140dp"
                 android:layout_marginStart="104dp"
-                android:layout_marginTop="80dp"
+                android:layout_marginTop="36dp"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView4"
+                app:layout_constraintTop_toBottomOf="@+id/titleTxt"
                 app:srcCompat="@drawable/create_profile_icon" />
 
             <TextView
@@ -227,56 +224,74 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/logInImg" />
 
+
             <EditText
                 android:id="@+id/nameCompanyEt"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="84dp"
-                android:layout_marginTop="48dp"
+                android:layout_width="183dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="100dp"
+                android:background="@drawable/rounded_edittext_bg"
                 android:ems="10"
                 android:inputType="text"
                 android:text="Name company"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/cardNumberEt" />
-
+                app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
                 android:id="@+id/typeActivityEt"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="84dp"
-                android:layout_marginTop="128dp"
+                android:layout_width="150dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="180dp"
+                android:background="@drawable/rounded_edittext_bg"
                 android:ems="10"
                 android:inputType="text"
                 android:text="Type activity"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/cardNumberEt" />
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+            <EditText
+                android:id="@+id/companyCountry"
+                android:layout_width="150dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="200dp"
+                android:layout_marginTop="184dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:ems="10"
+                android:inputType="text"
+                android:text="Country"
+                android:visibility="invisible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
                 android:id="@+id/companyAddresEt"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="92dp"
-                android:layout_marginTop="204dp"
+                android:layout_width="295dp"
+                android:layout_height="51dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="256dp"
+                android:background="@drawable/rounded_edittext_bg"
                 android:ems="10"
                 android:inputType="text"
                 android:text="Addres"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/cardNumberEt" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <Button
                 android:id="@+id/createBusinessBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="152dp"
-                android:layout_marginTop="36dp"
+                android:layout_marginStart="112dp"
+                android:layout_marginTop="408dp"
                 android:text="Create business"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/addresEt" />
+                app:layout_constraintTop_toTopOf="parent" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

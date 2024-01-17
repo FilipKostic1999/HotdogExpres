@@ -33,6 +33,8 @@ class ProfileFragment : Fragment() {
     private lateinit var email: TextView
     private lateinit var address: TextView
     private lateinit var phoneNumber: TextView
+    private lateinit var titleTxt: TextView
+    private lateinit var companyCountry: TextView
     private lateinit var logInImg: ImageView
     private lateinit var logInOrCreateTxt: TextView
     private lateinit var saveBtn: Button
@@ -41,8 +43,9 @@ class ProfileFragment : Fragment() {
     private lateinit var companyAddresEt: TextView
     private lateinit var createBusinessBtn: Button
     lateinit var profileUser: userProfile
+    lateinit var company: fastfoodPlace
+    private val hotDogTruckMarkers = mutableListOf<fastfoodPlace>()
 
-    var checkMark = 0
 
 
     override fun onCreateView(
@@ -78,6 +81,8 @@ class ProfileFragment : Fragment() {
         typeActivityEt = view.findViewById(R.id.typeActivityEt)
         companyAddresEt = view.findViewById(R.id.companyAddresEt)
         createBusinessBtn = view.findViewById(R.id.createBusinessBtn)
+        titleTxt = view.findViewById(R.id.titleTxt)
+        companyCountry = view.findViewById(R.id.companyCountry)
 
 
 
@@ -108,7 +113,7 @@ class ProfileFragment : Fragment() {
                     }
 
                     1 -> {
-                        showCreditCardInfo()
+                        showMyBusiness()
                     }
                 }
             }
@@ -153,6 +158,55 @@ class ProfileFragment : Fragment() {
         }
 
 
+
+
+        if (user != null) {
+            database.collection("Hotdog Expres").document("Users")
+                .collection(user.uid).document("User profile")
+                .collection("User companies")
+                .addSnapshotListener { snapshot, e ->
+                    if (snapshot != null) {
+
+                        if (snapshot.isEmpty) {
+                            // No documents in the snapshot, enable the button
+
+                        } else {
+                            for (document in snapshot.documents) {
+                                company = document.toObject<fastfoodPlace>()!!
+                            }
+                        }
+                    }
+                }
+        }
+
+
+
+
+
+        database.collection("Hotdog Expres")
+            .document("Fastfood places")
+            .collection("All")
+            .addSnapshotListener { snapshot, e ->
+                if (snapshot != null) {
+
+                    hotDogTruckMarkers.clear()
+
+                    if (snapshot.isEmpty) {
+                        // No documents in the snapshot, enable the button
+
+                    } else {
+                        for (document in snapshot.documents) {
+                            val fastfood = document.toObject<fastfoodPlace>()!!
+                            hotDogTruckMarkers.add(fastfood)
+                        }
+                    }
+                }
+            }
+
+
+
+
+
         saveBtn.setOnClickListener {
             saveUser()
         }
@@ -169,6 +223,7 @@ class ProfileFragment : Fragment() {
 
     fun showAccountDetails() {
         val user = auth.currentUser
+        titleTxt.text = "Account details"
         if (user != null) {
             nameEt.visibility = View.VISIBLE
             surname.visibility = View.VISIBLE
@@ -186,19 +241,22 @@ class ProfileFragment : Fragment() {
             typeActivityEt.visibility = View.GONE
             companyAddresEt.visibility = View.GONE
             createBusinessBtn.visibility = View.GONE
+            companyCountry.visibility = View.GONE
         }
     }
 
 
 
-    fun showCreditCardInfo() {
+    fun showMyBusiness() {
         val user = auth.currentUser
+        titleTxt.text = "My business"
         if (user != null) {
             cardNumber.visibility = View.VISIBLE
             nameCompanyEt.visibility = View.VISIBLE
             typeActivityEt.visibility = View.VISIBLE
             companyAddresEt.visibility = View.VISIBLE
             createBusinessBtn.visibility = View.VISIBLE
+            companyCountry.visibility = View.VISIBLE
 
             nameEt.visibility = View.GONE
             surname.visibility = View.GONE
@@ -233,6 +291,7 @@ class ProfileFragment : Fragment() {
             typeActivityEt.visibility = View.GONE
             companyAddresEt.visibility = View.GONE
             createBusinessBtn.visibility = View.GONE
+            companyCountry.visibility = View.GONE
         }
     }
 
@@ -243,19 +302,19 @@ class ProfileFragment : Fragment() {
 
         val user = auth.currentUser
 
-        val userProfile = userProfile(name = nameEt.text.toString(),
+            val saveProfileUserChanges = userProfile(name = nameEt.text.toString(),
             surname = surname.text.toString(), email = email.text.toString(),
             adress = address.text.toString(), phoneNumber = phoneNumber.text.toString(),
             country = country.text.toString(), dateBirth = dateOfBirth.text.toString(),
-            0)
+                profileUser.userId)
 
-        userProfile.checkmarksAvailable += checkMark
+
 
         // Get a reference to the Firestore collection
         if (user != null) {
             database.collection("Hotdog Expres")
                 .document("Users").collection(user.uid)
-                .document("User profile").set(userProfile)
+                .document("User profile").set(saveProfileUserChanges)
                 .addOnSuccessListener { documentReference ->
                     // Document added successfully
                     Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT).show()
@@ -269,36 +328,60 @@ class ProfileFragment : Fragment() {
 
 
 
+
     fun createCompany() {
         val user = auth.currentUser
 
-        val company = fastfoodPlace(0.0, 0.0,
+
+            company = fastfoodPlace(0.0, 0.0,
             nameCompanyEt.text.toString(), "",
-            typeActivityEt.text.toString(), companyAddresEt.text.toString())
+            typeActivityEt.text.toString(), companyAddresEt.text.toString(),
+            profileUser.userId)
+
+        for(checkmark in hotDogTruckMarkers) {
+            if (checkmark.documentId == profileUser.userId) {
+                company.latitude = checkmark.latitude
+                company.longitude = checkmark.longitude
+            }
+        }
 
 
-        // Get a reference to the Firestore collection
         if (user != null) {
-            database.collection("Hotdog Expres").document("Users")
-                .collection(user.uid).document("User profile")
-                .collection("User companies")
-                .add(company)
+            database.collection("Hotdog Expres")
+                .document("Fastfood places")
+                .collection("All")
+                .document(profileUser.userId).set(company)
                 .addOnSuccessListener { documentReference ->
                     // Document added successfully
-                    checkMark++
-                    saveUser()
-                    checkMark--
                     Toast.makeText(requireContext(), "Company created!", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
                     // Error adding document
                     Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
                 }
+
+            database.collection("Hotdog Expres").document("Users")
+                .collection(user.uid).document("User profile")
+                .collection("User companies")
+                .document(profileUser.userId).set(company)
+                .addOnSuccessListener { documentReference ->
+                    // Document added successfully
+                    Toast.makeText(requireContext(), "Company created!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    // Error adding document
+                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                }
+
+
+
         }
 
 
 
     }
+
+
 
 
 

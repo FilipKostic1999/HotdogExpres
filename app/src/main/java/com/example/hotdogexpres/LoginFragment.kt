@@ -16,6 +16,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import java.util.Random
 
 class LoginFragment : Fragment() {
 
@@ -227,18 +228,33 @@ class LoginFragment : Fragment() {
 
                                 val user = auth.currentUser
 
-                              /*
-                                val timestamp = System.currentTimeMillis()
-                                val random = Random(timestamp)
-                                val codeID = String.format("%06d", random.nextInt(1000000))
 
-                               */
+                                    val timestamp = System.currentTimeMillis()
+                                    val random = Random(timestamp)
+
+                                    val codeID = StringBuilder()
+
+                                    repeat(9) {
+                                        val randomChar = if (random.nextBoolean()) {
+                                            // Generate a random digit
+                                            (random.nextInt(10) + '0'.toInt()).toChar()
+                                        } else {
+                                            // Generate a random uppercase letter
+                                            (random.nextInt(26) + 'A'.toInt()).toChar()
+                                        }
+                                        codeID.append(randomChar)
+                                    }
+
+                                    val userId = codeID.toString()
+
+
 
                                 if (user != null) {
 
                                     val userData = userProfile(nameEt.text.toString(),
                                         surnameEt.text.toString(), signUpEmailEt.text.toString(),
-                                        "", "", "", "")
+                                        "", "", "", "",
+                                        userId)
 
                                     database.collection("Hotdog Expres")
                                         .document("Users")

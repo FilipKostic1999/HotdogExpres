@@ -35,11 +35,6 @@ class MainActivity : AppCompatActivity() {
                     setActivityBackgroundColor(R.color.orange)
                     true
                 }
-                R.id.nav_myBusiness -> {
-                    replaceFragment(MyBusinessFragment())
-                    setActivityBackgroundColor(R.color.orange)
-                    true
-                }
                 // Add more cases for other fragments if needed
                 else -> false
             }
