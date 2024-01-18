@@ -14,6 +14,7 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -40,6 +41,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 class MapsFragment : Fragment() {
@@ -70,6 +75,7 @@ class MapsFragment : Fragment() {
     var review = review("Alex", "Good place",
         3.14f, "")
 
+    private var snapshotListenerCounter = 0
 
 
     private lateinit var auth: FirebaseAuth
@@ -138,6 +144,9 @@ class MapsFragment : Fragment() {
                 lat = latLng.latitude
                 long = latLng.longitude
 
+                listOfReviews.clear()
+                myAdapter.notifyDataSetChanged()
+
                 if (user != null) {
                     saveFastfoodPlace()
                 }
@@ -178,13 +187,6 @@ class MapsFragment : Fragment() {
 
 
 
-
-
-
-
-
-
-
             database.collection("Hotdog Expres")
                 .document("Fastfood places")
                 .collection("All")
@@ -192,6 +194,8 @@ class MapsFragment : Fragment() {
                     if (snapshot != null) {
 
                         hotDogTruckMarkers.clear()
+                        googleMap.clear()
+                        snapshotListenerCounter = 0
 
                         if (snapshot.isEmpty) {
                             // No documents in the snapshot, enable the button
@@ -204,13 +208,16 @@ class MapsFragment : Fragment() {
                                     // do nothing
                                 } else {
                                     hotDogTruckMarkers.add(fastfood)
+                                    snapshotListenerCounter++
                                 }
                             }
 
                             googleMap.clear()
 
-                            hotDogTruckMarkers.forEach { hotDogTruck ->
-                                addRedMarker(googleMap, hotDogTruck)
+                            if (snapshotListenerCounter == snapshot.size()) {
+                                hotDogTruckMarkers.forEach { hotDogTruck ->
+                                    addMarkers(googleMap, hotDogTruckMarkers)
+                                }
                             }
                         }
                     }
@@ -224,13 +231,15 @@ class MapsFragment : Fragment() {
                     .addSnapshotListener { snapshot, e ->
                         if (snapshot != null) {
 
+                            var documentCounter = 0
+
                             if (snapshot.isEmpty) {
                                 // No documents in the snapshot, enable the button
-
                             } else {
                                 for (document in snapshot.documents) {
                                     val profileUser = document.toObject<userProfile>()!!
                                     userProfile = profileUser
+                                    documentCounter ++
                                 }
                             }
                         }
@@ -295,13 +304,20 @@ class MapsFragment : Fragment() {
 
 
             googleMap.setOnMarkerClickListener { marker ->
+
+                listOfReviews.clear()
+                myAdapter.notifyDataSetChanged()
+
                 val title = marker.title
+                val fastfoodId = marker.snippet
+
                 for (place in hotDogTruckMarkers) {
-                    if (place.fastfoodPlaceName == title) {
+                    if (place.documentId == fastfoodId) {
                         textViewFastFoodName.text = "$title"
                         addresTxt.text = "Addres: ${place.fastFoodAddres}"  // Use 'place' instead of 'fastFoodPlace'
                         typeFastFoodPlaceTxt.text = "Type: ${place.typeFastfood}"
                         selectedCompanyId = place.documentId
+                        Toast.makeText(requireContext(), selectedCompanyId, Toast.LENGTH_SHORT).show()
 
                         whiteRectangleImg.visibility = View.VISIBLE
                         textViewFastFoodName.visibility = View.VISIBLE
@@ -315,6 +331,11 @@ class MapsFragment : Fragment() {
                 }
                 true
             }
+
+
+
+
+
 
 
             takeMeThereBtn.setOnClickListener {
@@ -385,17 +406,30 @@ class MapsFragment : Fragment() {
     }
 
 
-    private fun addRedMarker(googleMap: GoogleMap, hotDogTruck: fastfoodPlace) {
-        // Create a LatLng object from HotDogTruck
-        val latLng = LatLng(hotDogTruck.latitude, hotDogTruck.longitude)
+    private fun addMarkers(googleMap: GoogleMap, hotDogTruckMarkers: List<fastfoodPlace>) {
+        val scope = CoroutineScope(Dispatchers.Main)
 
-        // Add a red marker at the specified location with a title
-        googleMap.addMarker(
-            MarkerOptions()
-                .position(latLng)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                .title(hotDogTruck.fastfoodPlaceName)  // Set title for the marker
-        )
+        scope.launch {
+            for (hotDogTruck in hotDogTruckMarkers) {
+                // Create a LatLng object from HotDogTruck
+                val latLng = LatLng(hotDogTruck.latitude, hotDogTruck.longitude)
+                var markerColor = BitmapDescriptorFactory.HUE_RED
+
+                if (userProfile.userId == hotDogTruck.documentId) {
+                    markerColor = BitmapDescriptorFactory.HUE_GREEN
+                }
+
+                // Add a single marker based on the determined color
+                googleMap.addMarker(
+                    MarkerOptions()
+                        .position(latLng)
+                        .icon(BitmapDescriptorFactory.defaultMarker(markerColor))
+                        .title(hotDogTruck.fastfoodPlaceName)
+                        .snippet(hotDogTruck.documentId)// Set title for the marker
+                )
+                delay(1000)
+            }
+        }
     }
 
 
@@ -508,7 +542,9 @@ class MapsFragment : Fragment() {
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
                     // No documents in the snapshot, handle accordingly
-
+                    listOfReviews.clear()
+                    ratingBar.rating = 0f
+                    myAdapter.notifyDataSetChanged()
                 } else {
                     listOfReviews.clear()
                     var totalReviews = 0

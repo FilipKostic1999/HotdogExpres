@@ -49,14 +49,15 @@ class reviewAdapter(private val listOfReviews: ArrayList<review>) :
     inner class reviewViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         val name: TextView = itemView.findViewById(R.id.nameUserTxt)
-        val ratingBarReview: RatingBar = itemView.findViewById(R.id.ratingBarUserReview)
+        var ratingBarReview: RatingBar = itemView.findViewById(R.id.ratingBarUserReview)
         val reviewText: TextView = itemView.findViewById(R.id.userReviewTxt)
         val deleteBtn: Button = itemView.findViewById(R.id.deleteBtn)
 
         fun bind(Review: review) {
             name.text = Review.nameReviewer
-            reviewText.text = Review.reviewText
+            reviewText.text = "  ${Review.reviewText}"
             ratingBarReview.rating = Review.reviewRating
+
 
 
 
