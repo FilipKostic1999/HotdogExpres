@@ -45,9 +45,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
-class MapsFragment : Fragment() {
+class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
     private lateinit var mapView: MapView
     private lateinit var textViewFastFoodName: TextView
@@ -106,8 +109,9 @@ class MapsFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.setHasFixedSize(true)
         listOfReviews = arrayListOf()
-        myAdapter = reviewAdapter(listOfReviews)
+        myAdapter = reviewAdapter(userProfile.userId,listOfReviews)
         recyclerView.adapter = myAdapter
+        myAdapter.setOnViewClickListener(this)
        // myAdapter.setOnViewClickListener(requireContext())
 
         mapView = view.findViewById(R.id.mapView)
@@ -205,7 +209,7 @@ class MapsFragment : Fragment() {
                             for (document in snapshot.documents) {
                                 val fastfood = document.toObject<fastfoodPlace>()!!
                                 if (fastfood.latitude == 0.0 && fastfood.longitude == 0.0) {
-                                    // do nothing
+                                    snapshotListenerCounter++
                                 } else {
                                     hotDogTruckMarkers.add(fastfood)
                                     snapshotListenerCounter++
@@ -214,14 +218,21 @@ class MapsFragment : Fragment() {
 
                             googleMap.clear()
 
-                            if (snapshotListenerCounter == snapshot.size()) {
-                                hotDogTruckMarkers.forEach { hotDogTruck ->
-                                    addMarkers(googleMap, hotDogTruckMarkers)
+                            val scope = CoroutineScope(Dispatchers.Main)
+
+                            scope.launch {
+                                if (snapshotListenerCounter == snapshot.size()) {
+                                    hotDogTruckMarkers.forEach { hotDogTruck ->
+                                        addMarkers(googleMap, hotDogTruckMarkers)
+                                    }
                                 }
+                                delay(1000)
                             }
                         }
                     }
                 }
+
+
 
 
 
@@ -240,6 +251,10 @@ class MapsFragment : Fragment() {
                                     val profileUser = document.toObject<userProfile>()!!
                                     userProfile = profileUser
                                     documentCounter ++
+                                    // Update the adapter to pass the review id after fetching
+                                    myAdapter = reviewAdapter(userProfile.userId,listOfReviews)
+                                    recyclerView.adapter = myAdapter
+                                    myAdapter.setOnViewClickListener(this)
                                 }
                             }
                         }
@@ -314,7 +329,7 @@ class MapsFragment : Fragment() {
                 for (place in hotDogTruckMarkers) {
                     if (place.documentId == fastfoodId) {
                         textViewFastFoodName.text = "$title"
-                        addresTxt.text = "Addres: ${place.fastFoodAddres}"  // Use 'place' instead of 'fastFoodPlace'
+                        addresTxt.text = "${place.fastFoodAddres}"  // Use 'place' instead of 'fastFoodPlace'
                         typeFastFoodPlaceTxt.text = "Type: ${place.typeFastfood}"
                         selectedCompanyId = place.documentId
                         Toast.makeText(requireContext(), selectedCompanyId, Toast.LENGTH_SHORT).show()
@@ -375,6 +390,78 @@ class MapsFragment : Fragment() {
         }
     }
 
+        override fun onViewClick(reviews: review) {
+            val builder = AlertDialog.Builder(requireContext())
+            val inflater = LayoutInflater.from(requireContext())
+            val dialogView = inflater.inflate(R.layout.dialog_confirmation, null)
+
+            builder.setView(dialogView)
+            val alertDialog = builder.create()
+
+            // Set custom background for the dialog
+            alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+            // Find views in the custom dialog layout
+            val messageTextView: TextView = dialogView.findViewById(R.id.messageTextView)
+            val yesButton: Button = dialogView.findViewById(R.id.yesButton)
+            val noButton: Button = dialogView.findViewById(R.id.noButton)
+
+            // Set the message
+            messageTextView.text = "Are you sure you want to delete this item?"
+
+            // Set click listeners
+            yesButton.setOnClickListener {
+
+                alertDialog.dismiss()
+
+                val user = auth.currentUser
+
+                if (user != null) {
+                    database.collection("Hotdog Expres")
+                        .document("Fastfood places").collection("All")
+                        .document(selectedCompanyId).collection("Company reviews")
+                        .document(userProfile.userId).delete()
+                        .addOnSuccessListener { documentReference ->
+                            // Document added successfully
+                            Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            // Error adding document
+                            Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+
+
+
+                    database.collection("Hotdog Expres").document("Users")
+                        .collection(user.uid).document("User profile")
+                        .collection("User reviews")
+                        .document(selectedCompanyId).delete()
+                        .addOnSuccessListener { documentReference ->
+                            // Document added successfully
+                            Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            // Error adding document
+                            Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+
+
+                }
+                Toast.makeText(requireContext(), "Item deleted", Toast.LENGTH_SHORT).show()
+            }
+
+            noButton.setOnClickListener {
+                // User clicked No, dismiss the dialog
+                alertDialog.dismiss()
+            }
+
+            alertDialog.show()
+        }
+
+
+
     private fun showCurrentLocation(googleMap: GoogleMap) {
         // Get the last known location using FusedLocationProviderClient
         if (ActivityCompat.checkSelfPermission(
@@ -407,9 +494,7 @@ class MapsFragment : Fragment() {
 
 
     private fun addMarkers(googleMap: GoogleMap, hotDogTruckMarkers: List<fastfoodPlace>) {
-        val scope = CoroutineScope(Dispatchers.Main)
 
-        scope.launch {
             for (hotDogTruck in hotDogTruckMarkers) {
                 // Create a LatLng object from HotDogTruck
                 val latLng = LatLng(hotDogTruck.latitude, hotDogTruck.longitude)
@@ -427,9 +512,7 @@ class MapsFragment : Fragment() {
                         .title(hotDogTruck.fastfoodPlaceName)
                         .snippet(hotDogTruck.documentId)// Set title for the marker
                 )
-                delay(1000)
             }
-        }
     }
 
 
@@ -527,6 +610,11 @@ class MapsFragment : Fragment() {
     }
 
 
+    private fun dateToMillis(dateString: String): Long {
+        val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val date = format.parse(dateString)
+        return date?.time ?: 0
+    }
 
 
 
@@ -557,6 +645,7 @@ class MapsFragment : Fragment() {
                     }
                     val totalRating = summedRatings/totalReviews
                     ratingBar.rating = totalRating
+                    listOfReviews.sortByDescending { it.date?.let { it1 -> dateToMillis(it1) } }
                     myAdapter.notifyDataSetChanged()
                 }
             }
@@ -573,8 +662,9 @@ class MapsFragment : Fragment() {
         // Retrieve user input from the inputView
         val user = auth.currentUser
         val reviewText = inputView.text.toString()
-        val review = review(userProfile.name, reviewText,
-            rating, userProfile.userId)
+        val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+        var review = review(userProfile.name, reviewText,
+            rating, userProfile.userId, currentDate)
 
 
         if (user != null) {
@@ -591,6 +681,28 @@ class MapsFragment : Fragment() {
                     Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
                         .show()
                 }
+
+
+
+          //  val reviewId = System.currentTimeMillis().toString() + (0..99999999).random().toString()
+            review = review(userProfile.name, reviewText,
+                rating, selectedCompanyId, currentDate)
+
+            database.collection("Hotdog Expres").document("Users")
+                .collection(user.uid).document("User profile")
+                .collection("User reviews")
+                .document(selectedCompanyId).set(review)
+                .addOnSuccessListener { documentReference ->
+                    // Document added successfully
+                    Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    // Error adding document
+                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+
         }
     }
 

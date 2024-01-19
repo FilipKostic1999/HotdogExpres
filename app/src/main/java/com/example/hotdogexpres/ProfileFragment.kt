@@ -1,5 +1,6 @@
 package com.example.hotdogexpres
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +10,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.hotdogexpres.adapters.reviewAdapter
 import com.example.hotdogexpres.classes.fastfoodPlace
+import com.example.hotdogexpres.classes.review
 import com.example.hotdogexpres.classes.userProfile
 import com.google.android.material.tabs.TabLayout
 import com.google.firebase.auth.FirebaseAuth
@@ -18,9 +23,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 
-class ProfileFragment : Fragment() {
+class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
     private lateinit var auth: FirebaseAuth
     lateinit var database : FirebaseFirestore
@@ -45,6 +52,14 @@ class ProfileFragment : Fragment() {
     lateinit var profileUser: userProfile
     lateinit var company: fastfoodPlace
     private val hotDogTruckMarkers = mutableListOf<fastfoodPlace>()
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var myAdapter: reviewAdapter
+    private lateinit var listOfReviews : ArrayList<review>
+
+
+
+    var userProfile = userProfile("", "", "",
+        "", "", "", "", "")
 
 
 
@@ -62,6 +77,18 @@ class ProfileFragment : Fragment() {
         database = Firebase.firestore
         auth = Firebase.auth
         val user = auth.currentUser
+
+
+
+
+        recyclerView = view.findViewById(R.id.yourReviewsRecyclerview)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.setHasFixedSize(true)
+        listOfReviews = arrayListOf()
+        myAdapter = reviewAdapter("yourReviews",listOfReviews)
+        recyclerView.adapter = myAdapter
+        myAdapter.setOnViewClickListener(this)
+
 
 
         // Access interactive elements by their IDs
@@ -87,11 +114,17 @@ class ProfileFragment : Fragment() {
 
 
         val accountDetailsTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_account_details, null)
+        val showMyReviewsTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_your_reviews, null)
         val createCompanyTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_create_company, null)
-        // Add tabs with custom views
+
+
         val accountDetailsTxt = tabLayout.newTab()
         accountDetailsTxt.customView = accountDetailsTab
         tabLayout.addTab(accountDetailsTxt)
+
+        val showMyReviewsTxt = tabLayout.newTab()
+        showMyReviewsTxt.customView = showMyReviewsTab
+        tabLayout.addTab(showMyReviewsTxt)
 
         val createCompanyTxt = tabLayout.newTab()
         createCompanyTxt.customView = createCompanyTab
@@ -113,6 +146,10 @@ class ProfileFragment : Fragment() {
                     }
 
                     1 -> {
+                        showMyReviews()
+                    }
+
+                    2 -> {
                         showMyBusiness()
                     }
                 }
@@ -151,6 +188,7 @@ class ProfileFragment : Fragment() {
                                 phoneNumber.text = "${profileUser.phoneNumber}"
                                 dateOfBirth.text = "${profileUser.dateBirth}"
                                 country.text = "${profileUser.country}"
+                                userProfile = profileUser
                             }
                         }
                     }
@@ -207,6 +245,32 @@ class ProfileFragment : Fragment() {
 
 
 
+        if (user != null) {
+            database.collection("Hotdog Expres").document("Users")
+                .collection(user.uid).document("User profile")
+                .collection("User reviews")
+                .addSnapshotListener { snapshot, e ->
+                    if (snapshot != null) {
+                        if (snapshot.isEmpty) {
+                            // No documents in the snapshot, enable the button
+                        } else {
+                            listOfReviews.clear()
+                            for (document in snapshot.documents) {
+                                val review = document.toObject<review>()!!
+                                listOfReviews.add(review)
+                            }
+
+                            // Sort the reviews by date (assuming date is a String)
+                            listOfReviews.sortByDescending { it.date?.let { it1 -> dateToMillis(it1) } }
+                            myAdapter.notifyDataSetChanged()
+                        }
+                    }
+                }
+        }
+
+
+
+
         saveBtn.setOnClickListener {
             saveUser()
         }
@@ -242,8 +306,38 @@ class ProfileFragment : Fragment() {
             companyAddresEt.visibility = View.GONE
             createBusinessBtn.visibility = View.GONE
             companyCountry.visibility = View.GONE
+            recyclerView.visibility = View.GONE
         }
     }
+
+
+
+
+    fun showMyReviews() {
+        val user = auth.currentUser
+        titleTxt.text = "Your reviews"
+        if (user != null) {
+            recyclerView.visibility = View.VISIBLE
+
+            logInImg.visibility = View.GONE
+            logInOrCreateTxt.visibility = View.GONE
+            cardNumber.visibility = View.GONE
+            nameCompanyEt.visibility = View.GONE
+            typeActivityEt.visibility = View.GONE
+            companyAddresEt.visibility = View.GONE
+            createBusinessBtn.visibility = View.GONE
+            companyCountry.visibility = View.GONE
+            nameEt.visibility = View.GONE
+            surname.visibility = View.GONE
+            country.visibility = View.GONE
+            email.visibility = View.GONE
+            address.visibility = View.GONE
+            dateOfBirth.visibility = View.GONE
+            phoneNumber.visibility = View.GONE
+            saveBtn.visibility = View.GONE
+        }
+    }
+
 
 
 
@@ -268,6 +362,7 @@ class ProfileFragment : Fragment() {
             saveBtn.visibility = View.GONE
             logInImg.visibility = View.GONE
             logInOrCreateTxt.visibility = View.GONE
+            recyclerView.visibility = View.GONE
         }
     }
 
@@ -383,6 +478,91 @@ class ProfileFragment : Fragment() {
 
 
 
+
+    override fun onViewClick(reviews: review) {
+        /*
+        val builder = AlertDialog.Builder(requireContext())
+        val inflater = LayoutInflater.from(requireContext())
+        val dialogView = inflater.inflate(R.layout.dialog_confirmation, null)
+
+        builder.setView(dialogView)
+        val alertDialog = builder.create()
+
+        // Set custom background for the dialog
+        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        // Find views in the custom dialog layout
+        val messageTextView: TextView = dialogView.findViewById(R.id.messageTextView)
+        val yesButton: Button = dialogView.findViewById(R.id.yesButton)
+        val noButton: Button = dialogView.findViewById(R.id.noButton)
+
+        // Set the message
+        messageTextView.text = "Are you sure you want to delete this item?"
+
+        // Set click listeners
+        yesButton.setOnClickListener {
+
+            alertDialog.dismiss()
+
+            val user = auth.currentUser
+
+            if (user != null) {
+                database.collection("Hotdog Expres")
+                    .document("Fastfood places").collection("All")
+                    .document(selectedCompanyId).collection("Company reviews")
+                    .document(userProfile.userId).delete()
+                    .addOnSuccessListener { documentReference ->
+                        // Document added successfully
+                        Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { e ->
+                        // Error adding document
+                        Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+
+
+
+                database.collection("Hotdog Expres").document("Users")
+                    .collection(user.uid).document("User profile")
+                    .collection("User reviews")
+                    .document(selectedCompanyId).delete()
+                    .addOnSuccessListener { documentReference ->
+                        // Document added successfully
+                        Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { e ->
+                        // Error adding document
+                        Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+
+
+            }
+            Toast.makeText(requireContext(), "Item deleted", Toast.LENGTH_SHORT).show()
+        }
+
+        noButton.setOnClickListener {
+            // User clicked No, dismiss the dialog
+            alertDialog.dismiss()
+        }
+
+        alertDialog.show()
+
+         */
+    }
+
+
+
+
+
+
+
+    private fun dateToMillis(dateString: String): Long {
+        val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val date = format.parse(dateString)
+        return date?.time ?: 0
+    }
 
 
 

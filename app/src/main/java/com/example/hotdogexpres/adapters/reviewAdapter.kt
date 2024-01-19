@@ -11,11 +11,12 @@ import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hotdogexpres.R
 import com.example.hotdogexpres.classes.review
 
-class reviewAdapter(private val listOfReviews: ArrayList<review>) :
+class reviewAdapter(private val currentReviewId: String, private val listOfReviews: ArrayList<review>) :
     RecyclerView.Adapter<reviewAdapter.reviewViewHolder>() {
 
 
@@ -23,7 +24,7 @@ class reviewAdapter(private val listOfReviews: ArrayList<review>) :
 
 
     interface OnViewClickListener {
-        fun onViewClick(Review: review)
+        fun onViewClick(reviews: review)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): reviewViewHolder {
@@ -52,19 +53,29 @@ class reviewAdapter(private val listOfReviews: ArrayList<review>) :
         var ratingBarReview: RatingBar = itemView.findViewById(R.id.ratingBarUserReview)
         val reviewText: TextView = itemView.findViewById(R.id.userReviewTxt)
         val deleteBtn: Button = itemView.findViewById(R.id.deleteBtn)
+        val dateTxt: TextView = itemView.findViewById(R.id.dateTxt)
 
-        fun bind(Review: review) {
-            name.text = Review.nameReviewer
-            reviewText.text = "  ${Review.reviewText}"
-            ratingBarReview.rating = Review.reviewRating
+        fun bind(reviews: review) {
+            name.text = reviews.nameReviewer
+            reviewText.text = "${reviews.reviewText}"
+            ratingBarReview.rating = reviews.reviewRating
+            dateTxt.text = "${reviews.date}"
+            deleteBtn.isVisible = false
 
+            if (currentReviewId == reviews.reviewId) {
+                // Set visibility of the delete button based on whether it's the current user's review
+                deleteBtn.isVisible = true
+            } else if (currentReviewId == "yourReviews") {
+                deleteBtn.isVisible = true
+            }
 
 
 
             deleteBtn.setOnClickListener {
-                onViewClickListener?.onViewClick(Review)
+                onViewClickListener?.onViewClick(reviews)
             }
         }
+
 
 
 

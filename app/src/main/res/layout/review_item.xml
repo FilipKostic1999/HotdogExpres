@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="350dp"
+    android:layout_width="300dp"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:cardElevation="8dp"
@@ -16,7 +16,7 @@
 
         <TextView
             android:id="@+id/nameUserTxt"
-            android:layout_width="259dp"
+            android:layout_width="225dp"
             android:layout_height="37dp"
             android:text="Name user"
             android:textSize="20dp"
@@ -35,19 +35,20 @@
 
         <TextView
             android:id="@+id/userReviewTxt"
-            android:layout_width="match_parent"
+            android:layout_width="265dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginStart="16dp"
             android:text="Review text"
             android:textSize="18dp"
+            android:paddingBottom="4dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView" />
+            app:layout_constraintTop_toBottomOf="@+id/ratingBarUserReview" />
 
         <RatingBar
             android:id="@+id/ratingBarUserReview"
             android:layout_width="235dp"
             android:layout_height="49dp"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="20dp"
             android:backgroundTint="#FFEB3B"
             android:foregroundTint="#FFEB3B"
             android:isIndicator="true"
@@ -66,6 +67,19 @@
             android:text="Delete"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/userReviewTxt" />
+
+        <TextView
+            android:id="@+id/dateTxt"
+            android:layout_width="105dp"
+            android:layout_height="33dp"
+            android:layout_marginTop="34dp"
+            android:text="Date"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.943"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
