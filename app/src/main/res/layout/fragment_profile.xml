@@ -162,18 +162,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
 
-            <EditText
-                android:id="@+id/cardNumberEt"
-                android:layout_width="350dp"
-                android:layout_height="45dp"
-                android:layout_marginStart="12dp"
-                android:layout_marginTop="340dp"
-                android:background="@drawable/rounded_edittext_bg"
-                android:hint="Card number"
-                android:textAlignment="center"
-                android:visibility="invisible"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+
 
             <TextView
                 android:id="@+id/titleTxt"
@@ -282,12 +271,27 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <EditText
+                android:id="@+id/cardNumberEt"
+                android:layout_width="350dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="340dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:hint="Card number"
+                android:textAlignment="center"
+                android:visibility="invisible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
             <Button
                 android:id="@+id/createBusinessBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="112dp"
                 android:layout_marginTop="408dp"
+                android:backgroundTint="#FF9800"
                 android:text="Create business"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
@@ -302,6 +306,43 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/greenMapsImg"
+                android:layout_width="72dp"
+                android:layout_height="74dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="20dp"
+                android:visibility="invisible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cardNumberEt"
+                app:srcCompat="@drawable/green_maps_icon" />
+
+            <TextView
+                android:id="@+id/greenMapsIconTxt"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:foregroundTint="#F44336"
+                android:text="You still have not placed your company on the map. Your company will appear green only to you. Just touch somewhere on the map to place it or move it around. You can always change location"
+                android:textColor="#F44336"
+                android:textSize="14dp"
+                android:textStyle="bold"
+                android:visibility="invisible"
+                app:layout_constraintStart_toEndOf="@+id/greenMapsImg"
+                app:layout_constraintTop_toBottomOf="@id/cardNumberEt" />
+
+            <Button
+                android:id="@+id/saveCompanyChangesBtn"
+                android:layout_width="140dp"
+                android:layout_height="55dp"
+                android:layout_marginStart="116dp"
+                android:layout_marginTop="52dp"
+                android:backgroundTint="#8BC34A"
+                android:text="Save changes"
+                android:visibility="invisible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/greenMapsIconTxt" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

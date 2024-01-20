@@ -14,17 +14,18 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RatingBar
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hotdogexpres.adapters.reviewAdapter
 import com.example.hotdogexpres.classes.fastfoodPlace
+import com.example.hotdogexpres.classes.mapSettings
 import com.example.hotdogexpres.classes.review
 import com.example.hotdogexpres.classes.userProfile
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -58,12 +59,13 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
     lateinit var takeMeThereBtn: Button
     lateinit var typeFastFoodPlaceTxt: TextView
     lateinit var addresTxt: TextView
-    lateinit var deleteImg: ImageView
+    lateinit var settingsImg: ImageView
     private val LOCATION_PERMISSION_REQUEST_CODE = 123
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val hotDogTruckMarkers = mutableListOf<fastfoodPlace>()
     var fastFoodPlace = fastfoodPlace(0.0, 0.0,
-        "", "", "", "", "")
+        "", "", "",
+        "", "")
    var lat = 0.0
     var long = 0.0
 
@@ -77,8 +79,10 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
     var selectedCompanyId = "id"
     var review = review("Alex", "Good place",
         3.14f, "")
+    var mapSettings = mapSettings(true, "")
 
     private var snapshotListenerCounter = 0
+    var isSwitchEnabled = true
 
 
     private lateinit var auth: FirebaseAuth
@@ -121,7 +125,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
         takeMeThereBtn = view.findViewById(R.id.takeMeThereBtn)
         typeFastFoodPlaceTxt = view.findViewById(R.id.typeFastFoodPlaceTxt)
         addresTxt = view.findViewById(R.id.addresTxt)
-        deleteImg = view.findViewById(R.id.deleteImg)
+        settingsImg = view.findViewById(R.id.settingsImg)
         writeReviewBtn = view.findViewById(R.id.writeReviewBtn)
         ratingBar = view.findViewById(R.id.ratingBar)
 
@@ -152,7 +156,11 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 myAdapter.notifyDataSetChanged()
 
                 if (user != null) {
-                    saveFastfoodPlace()
+                    if (isSwitchEnabled) {
+                        saveFastfoodPlace()
+                    } else {
+                        Toast.makeText(requireContext(), "Company is set as not editable on the map by settings!", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
 
@@ -287,32 +295,32 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
 
+            if (user != null) {
+                database.collection("Hotdog Expres").document("Users")
+                    .collection(user.uid).document("User profile")
+                    .collection("Map settings")
+                    .addSnapshotListener { snapshot, e ->
+                        if (snapshot != null) {
 
-            deleteImg.setOnClickListener {
-                /*
-                for (place in hotDogTruckMarkers) {
-                    if (place.fastfoodPlaceName ==
-                        fastFoodPlaceFetchedData.fastfoodPlaceName) {
-                        if (user != null) {
-                            database.collection("Hotdog Expres")
-                                .document("Fastfood places")
-                                .collection("All")
-                                .document(place.fastfoodPlaceName)
-                                .delete()
-                                .addOnSuccessListener { documentReference ->
-                                    Toast.makeText(requireContext(), "Company removed from map!", Toast.LENGTH_SHORT).show()
+                            if (snapshot.isEmpty) {
+                                // No documents in the snapshot, enable the button
+
+                            } else {
+                                for (document in snapshot.documents) {
+                                    mapSettings = document.toObject<mapSettings>()!!
+                                    isSwitchEnabled = mapSettings.isCompanyPlacable
                                 }
-                                .addOnFailureListener { e ->
-                                    // Error adding document
-                                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
-                                }
+                            }
                         }
                     }
-                }
+            }
 
 
 
-                 */
+
+
+            settingsImg.setOnClickListener {
+                showSettingsDialog(isSwitchEnabled)
             }
 
 
@@ -376,21 +384,112 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
 
-            /*
-                        // Display existing markers on the map
-                        hotDogTruckMarkers.forEach { hotDogTruck ->
-                            addRedMarker(googleMap, hotDogTruck)
-                        }
-
-             */
-
-
 
 
         }
     }
 
-        override fun onViewClick(reviews: review) {
+    private fun showSettingsDialog(initialSwitchState: Boolean) {
+        val builder = AlertDialog.Builder(requireContext())
+
+        // Inflate the layout for the dialog
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.show_settings_dialog, null)
+        builder.setView(dialogView)
+
+        // Find the Switch in the inflated layout
+        val switchButton: Switch = dialogView.findViewById(R.id.toogle)
+        val saveChangesButton: Button = dialogView.findViewById(R.id.saveChangesButton)
+        val removeCompany: Button = dialogView.findViewById(R.id.removeCompany)
+
+        // Set the initial switch state
+        switchButton.isChecked = initialSwitchState
+
+
+        val dialog = builder.create()
+
+        saveChangesButton.setOnClickListener {
+            val updatedSwitchState = switchButton.isChecked
+            saveSwitchStateToFirebase(updatedSwitchState)
+            dialog.dismiss()
+        }
+
+        removeCompany.setOnClickListener {
+            val user = auth.currentUser
+            for (place in hotDogTruckMarkers) {
+                if (place.documentId ==
+                    fastFoodPlaceFetchedData.documentId) {
+                    if (user != null) {
+                        database.collection("Hotdog Expres")
+                            .document("Fastfood places")
+                            .collection("All")
+                            .document(place.documentId)
+                            .delete()
+                            .addOnSuccessListener { documentReference ->
+                                Toast.makeText(requireContext(), "Company removed from map!", Toast.LENGTH_SHORT).show()
+                                dialog.dismiss()
+                            }
+                            .addOnFailureListener { e ->
+                                // Error adding document
+                                Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                            }
+
+                        fastFoodPlaceFetchedData.latitude = 0.0
+                        fastFoodPlaceFetchedData.longitude = 0.0
+
+                        database.collection("Hotdog Expres").document("Users")
+                            .collection(user.uid).document("User profile")
+                            .collection("User companies")
+                            .document(userProfile.userId)
+                            .set(fastFoodPlaceFetchedData)
+                            .addOnSuccessListener { documentReference ->
+                                Toast.makeText(requireContext(), "Company removed from map!", Toast.LENGTH_SHORT).show()
+                                dialog.dismiss()
+                            }
+                            .addOnFailureListener { e ->
+                                // Error adding document
+                                Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                            }
+
+
+                    }
+                }
+            }
+        }
+
+
+        // Set up any additional logic or event listeners here
+
+        // Create and show the AlertDialog
+        dialog.show()
+    }
+
+
+
+
+    private fun saveSwitchStateToFirebase(updatedSwitchState: Boolean) {
+        val user = auth.currentUser
+        mapSettings.isCompanyPlacable = updatedSwitchState
+
+        if (user != null) {
+            database.collection("Hotdog Expres").document("Users")
+                .collection(user.uid).document("User profile")
+                .collection("Map settings")
+                .document(userProfile.userId).set(mapSettings)
+                .addOnSuccessListener {
+                    Toast.makeText(requireContext(), "Settings saved", Toast.LENGTH_SHORT).show()
+                }
+
+        }
+
+    }
+
+
+
+
+
+
+
+    override fun onViewClick(reviews: review) {
             val builder = AlertDialog.Builder(requireContext())
             val inflater = LayoutInflater.from(requireContext())
             val dialogView = inflater.inflate(R.layout.dialog_confirmation, null)
@@ -606,6 +705,26 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                     Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
                         .show()
                 }
+
+
+
+            database.collection("Hotdog Expres").document("Users")
+                .collection(user.uid).document("User profile")
+                .collection("User companies")
+                .document(userProfile.userId)
+                .set(fastFoodPlace)
+                .addOnSuccessListener { documentReference ->
+                    // Document added successfully
+                    Toast.makeText(requireContext(), "Place saved!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    // Error adding document
+                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+
+
         }
     }
 
@@ -664,7 +783,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
         val reviewText = inputView.text.toString()
         val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
         var review = review(userProfile.name, reviewText,
-            rating, userProfile.userId, currentDate)
+            rating, userProfile.userId, currentDate, selectedCompanyId)
 
 
         if (user != null) {
@@ -686,7 +805,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
           //  val reviewId = System.currentTimeMillis().toString() + (0..99999999).random().toString()
             review = review(userProfile.name, reviewText,
-                rating, selectedCompanyId, currentDate)
+                rating, selectedCompanyId, currentDate, selectedCompanyId)
 
             database.collection("Hotdog Expres").document("Users")
                 .collection(user.uid).document("User profile")

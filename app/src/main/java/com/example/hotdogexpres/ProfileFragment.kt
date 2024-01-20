@@ -55,9 +55,13 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
     private lateinit var recyclerView: RecyclerView
     private lateinit var myAdapter: reviewAdapter
     private lateinit var listOfReviews : ArrayList<review>
+    lateinit var greenMapsImg: ImageView
+    lateinit var greenMapsIconTxt: TextView
+    lateinit var saveCompanyChangesBtn: Button
 
 
 
+    var doseCompanyExist = false
     var userProfile = userProfile("", "", "",
         "", "", "", "", "")
 
@@ -110,6 +114,9 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
         createBusinessBtn = view.findViewById(R.id.createBusinessBtn)
         titleTxt = view.findViewById(R.id.titleTxt)
         companyCountry = view.findViewById(R.id.companyCountry)
+        greenMapsImg = view.findViewById(R.id.greenMapsImg)
+        greenMapsIconTxt = view.findViewById(R.id.greenMapsIconTxt)
+        saveCompanyChangesBtn = view.findViewById(R.id.saveCompanyChangesBtn)
 
 
 
@@ -211,35 +218,23 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
                         } else {
                             for (document in snapshot.documents) {
                                 company = document.toObject<fastfoodPlace>()!!
+                                doseCompanyExist = true
+                                nameCompanyEt.text = company.fastfoodPlaceName
+                                typeActivityEt.text = company.typeFastfood
+                                companyAddresEt.text = company.fastFoodAddres
+                            }
+                            for (document in snapshot.documents) {
+                                val fastfood = document.toObject<fastfoodPlace>()!!
+                                if (fastfood.latitude == 0.0 && fastfood.longitude == 0.0) {
+                                    // do nothing
+                                } else {
+                                    greenMapsIconTxt.text = "Your company has been placed on the map and is now visible to all app users"
+                                }
                             }
                         }
                     }
                 }
         }
-
-
-
-
-
-        database.collection("Hotdog Expres")
-            .document("Fastfood places")
-            .collection("All")
-            .addSnapshotListener { snapshot, e ->
-                if (snapshot != null) {
-
-                    hotDogTruckMarkers.clear()
-
-                    if (snapshot.isEmpty) {
-                        // No documents in the snapshot, enable the button
-
-                    } else {
-                        for (document in snapshot.documents) {
-                            val fastfood = document.toObject<fastfoodPlace>()!!
-                            hotDogTruckMarkers.add(fastfood)
-                        }
-                    }
-                }
-            }
 
 
 
@@ -280,6 +275,12 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
         }
 
 
+        saveCompanyChangesBtn.setOnClickListener {
+            saveCompanyData()
+        }
+
+
+
     }
 
 
@@ -307,6 +308,9 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             createBusinessBtn.visibility = View.GONE
             companyCountry.visibility = View.GONE
             recyclerView.visibility = View.GONE
+            saveCompanyChangesBtn.visibility = View.GONE
+            greenMapsIconTxt.visibility = View.GONE
+            greenMapsImg.visibility = View.GONE
         }
     }
 
@@ -335,6 +339,9 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             dateOfBirth.visibility = View.GONE
             phoneNumber.visibility = View.GONE
             saveBtn.visibility = View.GONE
+            saveCompanyChangesBtn.visibility = View.GONE
+            greenMapsIconTxt.visibility = View.GONE
+            greenMapsImg.visibility = View.GONE
         }
     }
 
@@ -363,6 +370,15 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             logInImg.visibility = View.GONE
             logInOrCreateTxt.visibility = View.GONE
             recyclerView.visibility = View.GONE
+            greenMapsIconTxt.visibility = View.GONE
+            greenMapsImg.visibility = View.GONE
+            saveCompanyChangesBtn.visibility = View.GONE
+            if (doseCompanyExist) {
+                greenMapsIconTxt.visibility = View.VISIBLE
+                greenMapsImg.visibility = View.VISIBLE
+                saveCompanyChangesBtn.visibility = View.VISIBLE
+                createBusinessBtn.visibility = View.GONE
+            }
         }
     }
 
@@ -424,6 +440,54 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
 
+
+    fun saveCompanyData() {
+
+        val user = auth.currentUser
+
+        company = fastfoodPlace(company.latitude, company.longitude,
+            nameCompanyEt.text.toString(), "",
+            typeActivityEt.text.toString(), companyAddresEt.text.toString(),
+            profileUser.userId)
+
+        if (user != null) {
+            database.collection("Hotdog Expres")
+                .document("Fastfood places")
+                .collection("All")
+                .document(profileUser.userId).set(company)
+                .addOnSuccessListener { documentReference ->
+                    // Document added successfully
+                    Toast.makeText(requireContext(), "Company data updated!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    // Error adding document
+                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                }
+
+            database.collection("Hotdog Expres").document("Users")
+                .collection(user.uid).document("User profile")
+                .collection("User companies")
+                .document(profileUser.userId).set(company)
+                .addOnSuccessListener { documentReference ->
+                    // Document added successfully
+                    Toast.makeText(requireContext(), "Company data updated!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    // Error adding document
+                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                }
+
+
+
+        }
+
+
+
+    }
+
+
+
+
     fun createCompany() {
         val user = auth.currentUser
 
@@ -433,12 +497,6 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             typeActivityEt.text.toString(), companyAddresEt.text.toString(),
             profileUser.userId)
 
-        for(checkmark in hotDogTruckMarkers) {
-            if (checkmark.documentId == profileUser.userId) {
-                company.latitude = checkmark.latitude
-                company.longitude = checkmark.longitude
-            }
-        }
 
 
         if (user != null) {
@@ -480,7 +538,15 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
     override fun onViewClick(reviews: review) {
-        /*
+
+        var selectedCompanyId = ""
+
+        for (review in listOfReviews) {
+            if (reviews.receivingCompanyId == review.receivingCompanyId) {
+                selectedCompanyId = reviews.receivingCompanyId
+            }
+        }
+
         val builder = AlertDialog.Builder(requireContext())
         val inflater = LayoutInflater.from(requireContext())
         val dialogView = inflater.inflate(R.layout.dialog_confirmation, null)
@@ -549,7 +615,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
         alertDialog.show()
 
-         */
+
     }
 
 

@@ -197,14 +197,12 @@
         app:srcCompat="@android:drawable/ic_menu_search" />
 
     <ImageView
-        android:id="@+id/deleteImg"
+        android:id="@+id/settingsImg"
         android:layout_width="48dp"
         android:layout_height="38dp"
-        android:layout_marginStart="332dp"
-        android:layout_marginTop="284dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        app:srcCompat="@android:drawable/ic_delete" />
+        app:layout_constraintStart_toStartOf="@+id/mapView"
+        app:layout_constraintTop_toTopOf="@+id/mapView"
+        app:srcCompat="@android:drawable/ic_menu_manage" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
