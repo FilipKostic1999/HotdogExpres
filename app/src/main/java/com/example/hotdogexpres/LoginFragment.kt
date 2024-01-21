@@ -46,6 +46,11 @@ class LoginFragment : Fragment() {
     lateinit var logOutBtn: Button
 
 
+    lateinit var forgotPasswordTxt: TextView
+    lateinit var backToLogInTxt: TextView
+    lateinit var resetPasswordBtn: Button
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -80,6 +85,9 @@ class LoginFragment : Fragment() {
         userImg = view.findViewById(R.id.userImg)
         hotDogImg = view.findViewById(R.id.hotDogImg)
         logOutBtn = view.findViewById(R.id.logOutBtn)
+        forgotPasswordTxt = view.findViewById(R.id.forgotPasswordTxt)
+        resetPasswordBtn = view.findViewById(R.id.resetPasswordBtn)
+        backToLogInTxt = view.findViewById(R.id.backToLogInTxt)
 
 
 
@@ -110,7 +118,70 @@ class LoginFragment : Fragment() {
             showOnlyLogIn()
         }
 
+        forgotPasswordTxt.setOnClickListener {
+            showResetPassword()
+        }
+
+        backToLogInTxt.setOnClickListener {
+            showOnlyLogIn()
+        }
+
+
+
+
+
+        resetPasswordBtn.setOnClickListener {
+            val email = logInEmailEt.text.toString().trim()
+
+            if (email.isNotEmpty()) {
+                auth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(requireContext(), "Password reset email sent.", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(requireContext(), "Failed to send reset email. ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+            } else {
+                Toast.makeText(requireContext(), "Enter your email address.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
+
+
+
+
     }
+
+
+
+    fun showResetPassword() {
+        nameEt.visibility = View.GONE
+        surnameEt.visibility = View.GONE
+        signUpEmailEt.visibility = View.GONE
+        signUpPasswordEt.visibility = View.GONE
+        signUpConfPasswordEt.visibility = View.GONE
+        signUpBtn.visibility = View.GONE
+        logInTxt.visibility = View.GONE
+        signUpTitleTxt.visibility = View.GONE
+        logInPasswordEt.visibility = View.GONE
+        logInBtn.visibility = View.GONE
+        signUpTxt.visibility = View.GONE
+        loggedInImg.visibility = View.GONE
+        youAreLoggedTxt.visibility = View.GONE
+        forgotPasswordTxt.visibility = View.GONE
+
+
+        logInTitleTxt.text = "Reset password"
+        logInTitleTxt.visibility = View.VISIBLE
+        logInEmailEt.visibility = View.VISIBLE
+        resetPasswordBtn.visibility = View.VISIBLE
+        hotDogImg.visibility = View.VISIBLE
+        userImg.visibility = View.VISIBLE
+        backToLogInTxt.visibility = View.VISIBLE
+    }
+
 
 
 
@@ -126,13 +197,18 @@ class LoginFragment : Fragment() {
             loggedInImg.visibility = View.GONE
             youAreLoggedTxt.visibility = View.GONE
             logOutBtn.visibility = View.GONE
+            resetPasswordBtn.visibility = View.GONE
+            backToLogInTxt.visibility = View.GONE
 
+            logInTitleTxt.text = "Log in"
             logInTitleTxt.visibility = View.VISIBLE
             logInEmailEt.visibility = View.VISIBLE
             logInPasswordEt.visibility = View.VISIBLE
             logInBtn.visibility = View.VISIBLE
             signUpTxt.visibility = View.VISIBLE
             hotDogImg.visibility = View.VISIBLE
+            forgotPasswordTxt.visibility = View.VISIBLE
+            userImg.visibility = View.VISIBLE
     }
 
 
@@ -145,6 +221,9 @@ class LoginFragment : Fragment() {
             loggedInImg.visibility = View.GONE
             youAreLoggedTxt.visibility = View.GONE
             logOutBtn.visibility = View.GONE
+            forgotPasswordTxt.visibility = View.GONE
+            resetPasswordBtn.visibility = View.GONE
+            backToLogInTxt.visibility = View.GONE
 
             nameEt.visibility = View.VISIBLE
             surnameEt.visibility = View.VISIBLE
@@ -155,6 +234,7 @@ class LoginFragment : Fragment() {
             logInTxt.visibility = View.VISIBLE
             signUpTitleTxt.visibility = View.VISIBLE
             hotDogImg.visibility = View.VISIBLE
+            userImg.visibility = View.VISIBLE
     }
 
 
@@ -180,6 +260,9 @@ class LoginFragment : Fragment() {
             youAreLoggedTxt.visibility = View.GONE
             userImg.visibility = View.GONE
             hotDogImg.visibility = View.GONE
+            forgotPasswordTxt.visibility = View.GONE
+            resetPasswordBtn.visibility = View.GONE
+            backToLogInTxt.visibility = View.GONE
 
             loggedInImg.visibility = View.VISIBLE
             youAreLoggedTxt.visibility = View.VISIBLE

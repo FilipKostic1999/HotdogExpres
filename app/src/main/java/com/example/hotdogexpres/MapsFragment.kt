@@ -1,26 +1,29 @@
 package com.example.hotdogexpres
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
+import android.net.ConnectivityManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
-import com.google.android.gms.maps.MapView
-import android.Manifest
-import android.annotation.SuppressLint
-import android.app.AlertDialog
-import android.content.Intent
-import android.net.Uri
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hotdogexpres.adapters.reviewAdapter
@@ -32,6 +35,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
@@ -60,6 +64,11 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
     lateinit var typeFastFoodPlaceTxt: TextView
     lateinit var addresTxt: TextView
     lateinit var settingsImg: ImageView
+    lateinit var ratingOfTxt: TextView
+    lateinit var whiteCard: ImageView
+    lateinit var allReviews: TextView
+    lateinit var smalRedMarkerImg: ImageView
+    lateinit var smalCompanyImg: ImageView
     private val LOCATION_PERMISSION_REQUEST_CODE = 123
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val hotDogTruckMarkers = mutableListOf<fastfoodPlace>()
@@ -68,6 +77,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
         "", "")
    var lat = 0.0
     var long = 0.0
+    var streetName = ""
 
     lateinit var fastFoodPlaceFetchedData: fastfoodPlace
     private lateinit var recyclerView: RecyclerView
@@ -83,6 +93,8 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
     private var snapshotListenerCounter = 0
     var isSwitchEnabled = true
+    var reviewSavedTxt = ""
+    var doesUserHaveCompany = false
 
 
     private lateinit var auth: FirebaseAuth
@@ -128,6 +140,11 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
         settingsImg = view.findViewById(R.id.settingsImg)
         writeReviewBtn = view.findViewById(R.id.writeReviewBtn)
         ratingBar = view.findViewById(R.id.ratingBar)
+        ratingOfTxt = view.findViewById(R.id.ratingOfTxt)
+        whiteCard = view.findViewById(R.id.imageView2)
+        allReviews = view.findViewById(R.id.textView2)
+        smalRedMarkerImg = view.findViewById(R.id.imageView4)
+        smalCompanyImg = view.findViewById(R.id.imageView5)
 
         // Check and request location permission
         checkLocationPermission()
@@ -147,6 +164,10 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
             }
 
 
+
+
+
+
             googleMap.setOnMapClickListener { latLng ->
 
                 lat = latLng.latitude
@@ -155,11 +176,33 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 listOfReviews.clear()
                 myAdapter.notifyDataSetChanged()
 
+                whiteRectangleImg.visibility = View.GONE
+                textViewFastFoodName.visibility = View.GONE
+                addresTxt.visibility = View.GONE
+                typeFastFoodPlaceTxt.visibility = View.GONE
+                takeMeThereBtn.visibility = View.GONE
+                ratingOfTxt.visibility = View.GONE
+                ratingBar.visibility = View.GONE
+                writeReviewBtn.visibility = View.GONE
+                whiteCard.visibility = View.GONE
+                allReviews.visibility = View.GONE
+                smalRedMarkerImg.visibility = View.GONE
+                smalCompanyImg.visibility = View.GONE
+
+
                 if (user != null) {
                     if (isSwitchEnabled) {
-                        saveFastfoodPlace()
+                        if (doesUserHaveCompany) {
+                            // Perform reverse geocoding to get the street name
+                            if (isNetworkConnected()) {
+                                getAddressFromCoordinates(latLng)
+                                saveFastfoodPlace()
+                            } else {
+                                Toast.makeText(requireContext(), "No internet connection", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     } else {
-                        Toast.makeText(requireContext(), "Company is set as not editable on the map by settings!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Company position is set as not editable in the settings!", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -167,31 +210,44 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
             writeReviewBtn.setOnClickListener {
-                val builder = AlertDialog.Builder(requireContext())
-                val inflater = LayoutInflater.from(requireContext())
-                val dialogView = inflater.inflate(R.layout.dialog_write_new_review, null)
+                if (user != null) {
+                        val builder = AlertDialog.Builder(requireContext())
+                        val inflater = LayoutInflater.from(requireContext())
+                        val dialogView = inflater.inflate(R.layout.dialog_write_new_review, null)
 
-                builder.setView(dialogView)
+                        builder.setView(dialogView)
 
-                // Find the RatingBar in the dialogView
-                val ratingBar = dialogView.findViewById<RatingBar>(R.id.ratingBar)
+                        // Find the RatingBar in the dialogView
+                        val ratingBar = dialogView.findViewById<RatingBar>(R.id.ratingBar)
+                        val text: TextView = dialogView.findViewById(R.id.reviewEditText)
+                        text.text = reviewSavedTxt
 
-                // Set up the buttons
-                builder.setPositiveButton("Save") { _, _ ->
-                    val inputView = dialogView.findViewById<EditText>(R.id.reviewEditText)
-                    val rating = ratingBar.rating
-                    saveReview(inputView, rating)
+                        // Set up the buttons
+                        builder.setPositiveButton("Save") { _, _ ->
+                            if (isNetworkConnected()) {
+                                val rating = ratingBar.rating
+                                saveReview(text, rating)
+                            } else {
+                                Toast.makeText(requireContext(), "No internet connection", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        builder.setNegativeButton("Cancel") { dialog, _ ->
+                            // Cancel the review writing
+                            dialog.dismiss()
+                        }
+
+                        // Create and show the dialog
+                        val dialog = builder.create()
+                        dialog.show()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "You must log in to write reviews",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
-
-                builder.setNegativeButton("Cancel") { dialog, _ ->
-                    // Cancel the review writing
-                    dialog.dismiss()
-                }
-
-                // Create and show the dialog
-                val dialog = builder.create()
-                dialog.show()
-            }
 
 
 
@@ -286,6 +342,8 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                                 for (document in snapshot.documents) {
                                     val business = document.toObject<fastfoodPlace>()!!
                                     fastFoodPlaceFetchedData = business
+                                    doesUserHaveCompany = true
+                                    settingsImg.isVisible = true
                                 }
                             }
                         }
@@ -318,6 +376,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
 
+            settingsImg.isVisible = false
 
             settingsImg.setOnClickListener {
                 showSettingsDialog(isSwitchEnabled)
@@ -334,25 +393,36 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 val title = marker.title
                 val fastfoodId = marker.snippet
 
-                for (place in hotDogTruckMarkers) {
-                    if (place.documentId == fastfoodId) {
-                        textViewFastFoodName.text = "$title"
-                        addresTxt.text = "${place.fastFoodAddres}"  // Use 'place' instead of 'fastFoodPlace'
-                        typeFastFoodPlaceTxt.text = "Type: ${place.typeFastfood}"
-                        selectedCompanyId = place.documentId
-                        Toast.makeText(requireContext(), selectedCompanyId, Toast.LENGTH_SHORT).show()
+                if (isNetworkConnected()) {
+                    for (place in hotDogTruckMarkers) {
+                        if (place.documentId == fastfoodId) {
+                            textViewFastFoodName.text = "$title"
+                            addresTxt.text =
+                                "${place.fastFoodAddres}"  // Use 'place' instead of 'fastFoodPlace'
+                            typeFastFoodPlaceTxt.text = "Type: ${place.typeFastfood}"
+                            selectedCompanyId = place.documentId
 
-                        whiteRectangleImg.visibility = View.VISIBLE
-                        textViewFastFoodName.visibility = View.VISIBLE
-                        addresTxt.visibility = View.VISIBLE
-                        typeFastFoodPlaceTxt.visibility = View.VISIBLE
-                        takeMeThereBtn.visibility = View.VISIBLE
+                            whiteRectangleImg.visibility = View.VISIBLE
+                            textViewFastFoodName.visibility = View.VISIBLE
+                            addresTxt.visibility = View.VISIBLE
+                            typeFastFoodPlaceTxt.visibility = View.VISIBLE
+                            takeMeThereBtn.visibility = View.VISIBLE
+                            ratingOfTxt.visibility = View.VISIBLE
+                            ratingBar.visibility = View.VISIBLE
+                            writeReviewBtn.visibility = View.VISIBLE
+                            whiteCard.visibility = View.VISIBLE
+                            allReviews.visibility = View.VISIBLE
+                            smalRedMarkerImg.visibility = View.VISIBLE
+                            smalCompanyImg.visibility = View.VISIBLE
 
-                        destinationLatLng = marker.position
-                        getReviews()
+                            destinationLatLng = marker.position
+                            getReviews()
+                        }
                     }
+                } else {
+                    Toast.makeText(requireContext(), "No internet connection", Toast.LENGTH_SHORT).show()
                 }
-                true
+                    true
             }
 
 
@@ -389,6 +459,27 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
         }
     }
 
+
+    private fun getAddressFromCoordinates(latLng: LatLng) {
+        val geocoder = Geocoder(requireContext(), Locale.getDefault())
+
+        try {
+            val addresses: MutableList<Address>? = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+
+            if (addresses != null) {
+                if (addresses.isNotEmpty()) {
+                    streetName = addresses?.get(0)?.getAddressLine(0).toString()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+
+
+
+
     private fun showSettingsDialog(initialSwitchState: Boolean) {
         val builder = AlertDialog.Builder(requireContext())
 
@@ -408,51 +499,75 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
         val dialog = builder.create()
 
         saveChangesButton.setOnClickListener {
-            val updatedSwitchState = switchButton.isChecked
-            saveSwitchStateToFirebase(updatedSwitchState)
-            dialog.dismiss()
+            if (isNetworkConnected()) {
+                val updatedSwitchState = switchButton.isChecked
+                saveSwitchStateToFirebase(updatedSwitchState)
+                dialog.dismiss()
+            } else {
+                Toast.makeText(requireContext(), "No internet connection", Toast.LENGTH_SHORT).show()
+            }
         }
 
         removeCompany.setOnClickListener {
-            val user = auth.currentUser
-            for (place in hotDogTruckMarkers) {
-                if (place.documentId ==
-                    fastFoodPlaceFetchedData.documentId) {
-                    if (user != null) {
-                        database.collection("Hotdog Expres")
-                            .document("Fastfood places")
-                            .collection("All")
-                            .document(place.documentId)
-                            .delete()
-                            .addOnSuccessListener { documentReference ->
-                                Toast.makeText(requireContext(), "Company removed from map!", Toast.LENGTH_SHORT).show()
-                                dialog.dismiss()
-                            }
-                            .addOnFailureListener { e ->
-                                // Error adding document
-                                Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
-                            }
+            if (isNetworkConnected()) {
+                val user = auth.currentUser
+                for (place in hotDogTruckMarkers) {
+                    if (place.documentId ==
+                        fastFoodPlaceFetchedData.documentId
+                    ) {
+                        if (user != null) {
+                            database.collection("Hotdog Expres")
+                                .document("Fastfood places")
+                                .collection("All")
+                                .document(place.documentId)
+                                .delete()
+                                .addOnSuccessListener { documentReference ->
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Company removed from map!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    dialog.dismiss()
+                                }
+                                .addOnFailureListener { e ->
+                                    // Error adding document
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Something went wrong",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
 
-                        fastFoodPlaceFetchedData.latitude = 0.0
-                        fastFoodPlaceFetchedData.longitude = 0.0
+                            fastFoodPlaceFetchedData.latitude = 0.0
+                            fastFoodPlaceFetchedData.longitude = 0.0
 
-                        database.collection("Hotdog Expres").document("Users")
-                            .collection(user.uid).document("User profile")
-                            .collection("User companies")
-                            .document(userProfile.userId)
-                            .set(fastFoodPlaceFetchedData)
-                            .addOnSuccessListener { documentReference ->
-                                Toast.makeText(requireContext(), "Company removed from map!", Toast.LENGTH_SHORT).show()
-                                dialog.dismiss()
-                            }
-                            .addOnFailureListener { e ->
-                                // Error adding document
-                                Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
-                            }
+                            database.collection("Hotdog Expres").document("Users")
+                                .collection(user.uid).document("User profile")
+                                .collection("User companies")
+                                .document(userProfile.userId)
+                                .set(fastFoodPlaceFetchedData)
+                                .addOnSuccessListener { documentReference ->
+                                    dialog.dismiss()
+                                }
+                                .addOnFailureListener { e ->
+                                    // Error adding document
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Something went wrong",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
 
 
+                        }
                     }
                 }
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "No internet connection",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 
@@ -490,6 +605,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
     override fun onViewClick(reviews: review) {
+        if (isNetworkConnected()) {
             val builder = AlertDialog.Builder(requireContext())
             val inflater = LayoutInflater.from(requireContext())
             val dialogView = inflater.inflate(R.layout.dialog_confirmation, null)
@@ -522,11 +638,16 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                         .document(userProfile.userId).delete()
                         .addOnSuccessListener { documentReference ->
                             // Document added successfully
-                            Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT)
+                                .show()
                         }
                         .addOnFailureListener { e ->
                             // Error adding document
-                            Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                            Toast.makeText(
+                                requireContext(),
+                                "Something went wrong",
+                                Toast.LENGTH_SHORT
+                            )
                                 .show()
                         }
 
@@ -538,11 +659,14 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                         .document(selectedCompanyId).delete()
                         .addOnSuccessListener { documentReference ->
                             // Document added successfully
-                            Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
                         }
                         .addOnFailureListener { e ->
                             // Error adding document
-                            Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
+                            Toast.makeText(
+                                requireContext(),
+                                "Something went wrong",
+                                Toast.LENGTH_SHORT
+                            )
                                 .show()
                         }
 
@@ -557,7 +681,10 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
             }
 
             alertDialog.show()
+        } else {
+            Toast.makeText(requireContext(), "No internet connection", Toast.LENGTH_SHORT).show()
         }
+    }
 
 
 
@@ -689,7 +816,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
             fastFoodPlace.documentId = userProfile.userId
             fastFoodPlace.fastfoodPlaceName = fastFoodPlaceFetchedData.fastfoodPlaceName
             fastFoodPlace.typeFastfood = fastFoodPlaceFetchedData.typeFastfood
-            fastFoodPlace.fastFoodAddres = fastFoodPlaceFetchedData.fastFoodAddres
+            fastFoodPlace.fastFoodAddres = streetName
 
             // Get a reference to the Firestore collection
             database.collection("Hotdog Expres")
@@ -715,7 +842,6 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 .set(fastFoodPlace)
                 .addOnSuccessListener { documentReference ->
                     // Document added successfully
-                    Toast.makeText(requireContext(), "Place saved!", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
                     // Error adding document
@@ -761,6 +887,12 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                         totalReviews++
                         summedRatings += review.reviewRating
                         listOfReviews.add(review)
+                        if (review.reviewId == userProfile.userId) {
+                            writeReviewBtn.text = "Edit your review"
+                            reviewSavedTxt = review.reviewText
+                        } else {
+                            writeReviewBtn.text = "Write a review"
+                        }
                     }
                     val totalRating = summedRatings/totalReviews
                     ratingBar.rating = totalRating
@@ -777,7 +909,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
 
-    private fun saveReview(inputView: EditText, rating: Float) {
+    private fun saveReview(inputView: TextView, rating: Float) {
         // Retrieve user input from the inputView
         val user = auth.currentUser
         val reviewText = inputView.text.toString()
@@ -813,7 +945,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 .document(selectedCompanyId).set(review)
                 .addOnSuccessListener { documentReference ->
                     // Document added successfully
-                    Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
+                    getReviews()
                 }
                 .addOnFailureListener { e ->
                     // Error adding document
@@ -826,6 +958,11 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
     }
 
 
+    private fun isNetworkConnected(): Boolean {
+        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
 
 
 

@@ -10,18 +10,18 @@
     <ImageView
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:src="@drawable/user_img"
+        android:src="@drawable/maps_icon"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="16dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Settings"
-        android:textSize="18sp"
-        android:textStyle="bold"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        android:text="Map settings"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
     <!-- Toggle Switch -->
     <Switch
@@ -33,13 +33,6 @@
         android:layout_marginBottom="16dp"/>
 
     <!-- Value Display TextView -->
-    <TextView
-        android:id="@+id/valueTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Selected Value"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"/>
 
     <!-- Delete Button -->
     <Button

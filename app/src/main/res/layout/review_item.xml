@@ -40,7 +40,7 @@
             android:layout_marginStart="16dp"
             android:text="Review text"
             android:textSize="18dp"
-            android:paddingBottom="4dp"
+            android:paddingBottom="10dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/ratingBarUserReview" />
 
@@ -64,6 +64,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
+            android:backgroundTint="#F44336"
             android:text="Delete"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/userReviewTxt" />

@@ -25,11 +25,11 @@
 
     <EditText
         android:id="@+id/reviewEditText"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/rounded_edittext_bg"
         android:hint="Write your review..."
-        android:maxLines="5"
-        android:background="@drawable/rounded_edittext_bg"/>
+        android:maxLines="5" />
 
     <RatingBar
         android:id="@+id/ratingBar"

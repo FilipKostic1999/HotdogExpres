@@ -1,7 +1,11 @@
 package com.example.hotdogexpres
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +29,7 @@ import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.logging.Handler
 
 
 class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
@@ -41,7 +46,6 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
     private lateinit var address: TextView
     private lateinit var phoneNumber: TextView
     private lateinit var titleTxt: TextView
-    private lateinit var companyCountry: TextView
     private lateinit var logInImg: ImageView
     private lateinit var logInOrCreateTxt: TextView
     private lateinit var saveBtn: Button
@@ -58,6 +62,8 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
     lateinit var greenMapsImg: ImageView
     lateinit var greenMapsIconTxt: TextView
     lateinit var saveCompanyChangesBtn: Button
+    lateinit var typeTxt: TextView
+    lateinit var companyCostTxt: TextView
 
 
 
@@ -113,10 +119,11 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
         companyAddresEt = view.findViewById(R.id.companyAddresEt)
         createBusinessBtn = view.findViewById(R.id.createBusinessBtn)
         titleTxt = view.findViewById(R.id.titleTxt)
-        companyCountry = view.findViewById(R.id.companyCountry)
         greenMapsImg = view.findViewById(R.id.greenMapsImg)
         greenMapsIconTxt = view.findViewById(R.id.greenMapsIconTxt)
         saveCompanyChangesBtn = view.findViewById(R.id.saveCompanyChangesBtn)
+        typeTxt = view.findViewById(R.id.typeTxt)
+        companyCostTxt = view.findViewById(R.id.companyCostTxt)
 
 
 
@@ -271,8 +278,32 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
         }
 
         createBusinessBtn.setOnClickListener {
-            createCompany()
+
+
+            val cardNumberText = cardNumber.text.toString()
+            val nameCompanyText = nameCompanyEt.text.toString()
+            val typeActivityText = typeActivityEt.text.toString()
+            val companyAddressText = companyAddresEt.text.toString()
+
+            if (isValidField(cardNumberText) &&
+                isValidField(nameCompanyText) &&
+                isValidField(typeActivityText) &&
+                isValidField(companyAddressText)) {
+                val progressDialog = ProgressDialog(requireContext())
+                progressDialog.setMessage("Payment in progress...")
+                progressDialog.setCancelable(false)
+                progressDialog.show()
+
+                // Simulate payment processing for 3 seconds
+                android.os.Handler().postDelayed({
+                    progressDialog.dismiss()
+                    createCompany()
+                }, 3000)
+            } else {
+                Toast.makeText(requireContext(), "There are empty fields or some of them are too short", Toast.LENGTH_SHORT).show()
+            }
         }
+
 
 
         saveCompanyChangesBtn.setOnClickListener {
@@ -283,6 +314,11 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
     }
 
+
+
+    private fun isValidField(text: String): Boolean {
+        return !TextUtils.isEmpty(text) && text.length >= 4
+    }
 
 
 
@@ -306,11 +342,12 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             typeActivityEt.visibility = View.GONE
             companyAddresEt.visibility = View.GONE
             createBusinessBtn.visibility = View.GONE
-            companyCountry.visibility = View.GONE
             recyclerView.visibility = View.GONE
             saveCompanyChangesBtn.visibility = View.GONE
             greenMapsIconTxt.visibility = View.GONE
             greenMapsImg.visibility = View.GONE
+            typeTxt.visibility = View.GONE
+            companyCostTxt.visibility = View.GONE
         }
     }
 
@@ -330,7 +367,6 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             typeActivityEt.visibility = View.GONE
             companyAddresEt.visibility = View.GONE
             createBusinessBtn.visibility = View.GONE
-            companyCountry.visibility = View.GONE
             nameEt.visibility = View.GONE
             surname.visibility = View.GONE
             country.visibility = View.GONE
@@ -342,9 +378,10 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             saveCompanyChangesBtn.visibility = View.GONE
             greenMapsIconTxt.visibility = View.GONE
             greenMapsImg.visibility = View.GONE
+            typeTxt.visibility = View.GONE
+            companyCostTxt.visibility = View.GONE
         }
     }
-
 
 
 
@@ -357,7 +394,8 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             typeActivityEt.visibility = View.VISIBLE
             companyAddresEt.visibility = View.VISIBLE
             createBusinessBtn.visibility = View.VISIBLE
-            companyCountry.visibility = View.VISIBLE
+            typeTxt.visibility = View.VISIBLE
+            companyCostTxt.visibility = View.VISIBLE
 
             nameEt.visibility = View.GONE
             surname.visibility = View.GONE
@@ -378,6 +416,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 greenMapsImg.visibility = View.VISIBLE
                 saveCompanyChangesBtn.visibility = View.VISIBLE
                 createBusinessBtn.visibility = View.GONE
+                companyCostTxt.visibility = View.GONE
             }
         }
     }
@@ -402,7 +441,11 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             typeActivityEt.visibility = View.GONE
             companyAddresEt.visibility = View.GONE
             createBusinessBtn.visibility = View.GONE
-            companyCountry.visibility = View.GONE
+            saveCompanyChangesBtn.visibility = View.GONE
+            greenMapsIconTxt.visibility = View.GONE
+            greenMapsImg.visibility = View.GONE
+            typeTxt.visibility = View.GONE
+            companyCostTxt.visibility = View.GONE
         }
     }
 
@@ -520,6 +563,8 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 .addOnSuccessListener { documentReference ->
                     // Document added successfully
                     Toast.makeText(requireContext(), "Company created!", Toast.LENGTH_SHORT).show()
+                    cardNumber.text = ""
+                    showMyBusiness()
                 }
                 .addOnFailureListener { e ->
                     // Error adding document
@@ -539,88 +584,107 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
     override fun onViewClick(reviews: review) {
 
-        var selectedCompanyId = ""
+        if (isNetworkConnected()) {
 
-        for (review in listOfReviews) {
-            if (reviews.receivingCompanyId == review.receivingCompanyId) {
-                selectedCompanyId = reviews.receivingCompanyId
+            var selectedCompanyId = ""
+
+            for (review in listOfReviews) {
+                if (reviews.receivingCompanyId == review.receivingCompanyId) {
+                    selectedCompanyId = reviews.receivingCompanyId
+                }
             }
-        }
 
-        val builder = AlertDialog.Builder(requireContext())
-        val inflater = LayoutInflater.from(requireContext())
-        val dialogView = inflater.inflate(R.layout.dialog_confirmation, null)
+            val builder = AlertDialog.Builder(requireContext())
+            val inflater = LayoutInflater.from(requireContext())
+            val dialogView = inflater.inflate(R.layout.dialog_confirmation, null)
 
-        builder.setView(dialogView)
-        val alertDialog = builder.create()
+            builder.setView(dialogView)
+            val alertDialog = builder.create()
 
-        // Set custom background for the dialog
-        alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            // Set custom background for the dialog
+            alertDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        // Find views in the custom dialog layout
-        val messageTextView: TextView = dialogView.findViewById(R.id.messageTextView)
-        val yesButton: Button = dialogView.findViewById(R.id.yesButton)
-        val noButton: Button = dialogView.findViewById(R.id.noButton)
+            // Find views in the custom dialog layout
+            val messageTextView: TextView = dialogView.findViewById(R.id.messageTextView)
+            val yesButton: Button = dialogView.findViewById(R.id.yesButton)
+            val noButton: Button = dialogView.findViewById(R.id.noButton)
 
-        // Set the message
-        messageTextView.text = "Are you sure you want to delete this item?"
+            // Set the message
+            messageTextView.text = "Are you sure you want to delete this item?"
 
-        // Set click listeners
-        yesButton.setOnClickListener {
+            // Set click listeners
+            yesButton.setOnClickListener {
 
-            alertDialog.dismiss()
+                alertDialog.dismiss()
 
-            val user = auth.currentUser
+                val user = auth.currentUser
 
-            if (user != null) {
-                database.collection("Hotdog Expres")
-                    .document("Fastfood places").collection("All")
-                    .document(selectedCompanyId).collection("Company reviews")
-                    .document(userProfile.userId).delete()
-                    .addOnSuccessListener { documentReference ->
-                        // Document added successfully
-                        Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { e ->
-                        // Error adding document
-                        Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-
-
-
-                database.collection("Hotdog Expres").document("Users")
-                    .collection(user.uid).document("User profile")
-                    .collection("User reviews")
-                    .document(selectedCompanyId).delete()
-                    .addOnSuccessListener { documentReference ->
-                        // Document added successfully
-                        Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { e ->
-                        // Error adding document
-                        Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT)
-                            .show()
-                    }
+                if (user != null) {
+                    database.collection("Hotdog Expres")
+                        .document("Fastfood places").collection("All")
+                        .document(selectedCompanyId).collection("Company reviews")
+                        .document(userProfile.userId).delete()
+                        .addOnSuccessListener { documentReference ->
+                            // Document added successfully
+                            Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                        .addOnFailureListener { e ->
+                            // Error adding document
+                            Toast.makeText(
+                                requireContext(),
+                                "Something went wrong",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
 
 
+
+                    database.collection("Hotdog Expres").document("Users")
+                        .collection(user.uid).document("User profile")
+                        .collection("User reviews")
+                        .document(selectedCompanyId).delete()
+                        .addOnSuccessListener { documentReference ->
+                            // Document added successfully
+                            Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                        .addOnFailureListener { e ->
+                            // Error adding document
+                            Toast.makeText(
+                                requireContext(),
+                                "Something went wrong",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
+
+
+                }
+                Toast.makeText(requireContext(), "Item deleted", Toast.LENGTH_SHORT).show()
             }
-            Toast.makeText(requireContext(), "Item deleted", Toast.LENGTH_SHORT).show()
-        }
 
-        noButton.setOnClickListener {
-            // User clicked No, dismiss the dialog
-            alertDialog.dismiss()
-        }
+            noButton.setOnClickListener {
+                // User clicked No, dismiss the dialog
+                alertDialog.dismiss()
+            }
 
-        alertDialog.show()
+            alertDialog.show()
+        } else {
+            Toast.makeText(requireContext(), "No internet connection", Toast.LENGTH_SHORT).show()
+        }
 
 
     }
 
 
 
-
+    private fun isNetworkConnected(): Boolean {
+        val connectivityManager = requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
 
 
 

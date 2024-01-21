@@ -141,6 +141,9 @@
                 android:layout_marginTop="340dp"
                 android:background="@drawable/rounded_edittext_bg"
                 android:hint="Email"
+                android:inputType="none"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
                 android:textAlignment="center"
                 android:visibility="visible"
                 app:layout_constraintStart_toStartOf="parent"
@@ -217,13 +220,14 @@
             <EditText
                 android:id="@+id/nameCompanyEt"
                 android:layout_width="183dp"
-                android:layout_height="48dp"
+                android:layout_height="45dp"
                 android:layout_marginStart="12dp"
                 android:layout_marginTop="100dp"
                 android:background="@drawable/rounded_edittext_bg"
                 android:ems="10"
                 android:inputType="text"
-                android:text="Name company"
+                android:hint="Name company"
+                android:textAlignment="center"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -232,48 +236,41 @@
                 android:id="@+id/typeActivityEt"
                 android:layout_width="150dp"
                 android:layout_height="45dp"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="12dp"
                 android:layout_marginTop="180dp"
                 android:background="@drawable/rounded_edittext_bg"
                 android:ems="10"
                 android:inputType="text"
-                android:text="Type activity"
+                android:hint="Type busines"
+                android:textAlignment="center"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
 
-            <EditText
-                android:id="@+id/companyCountry"
-                android:layout_width="150dp"
-                android:layout_height="45dp"
-                android:layout_marginStart="200dp"
-                android:layout_marginTop="184dp"
-                android:background="@drawable/rounded_edittext_bg"
-                android:ems="10"
-                android:inputType="text"
-                android:text="Country"
-                android:visibility="invisible"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
                 android:id="@+id/companyAddresEt"
                 android:layout_width="295dp"
-                android:layout_height="51dp"
+                android:layout_height="45dp"
                 android:layout_marginStart="12dp"
-                android:layout_marginTop="256dp"
+                android:layout_marginTop="260dp"
                 android:background="@drawable/rounded_edittext_bg"
                 android:ems="10"
-                android:inputType="text"
-                android:text="Addres"
+                android:text="Addres is set automatically as you put your company on the map"
+                android:inputType="none"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:textAlignment="center"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+
+
             <EditText
                 android:id="@+id/cardNumberEt"
-                android:layout_width="350dp"
+                android:layout_width="300dp"
                 android:layout_height="45dp"
                 android:layout_marginStart="12dp"
                 android:layout_marginTop="340dp"
@@ -290,7 +287,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="112dp"
-                android:layout_marginTop="408dp"
+                android:layout_marginTop="516dp"
                 android:backgroundTint="#FF9800"
                 android:text="Create business"
                 android:visibility="invisible"
@@ -343,6 +340,29 @@
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/greenMapsIconTxt" />
+
+            <TextView
+                android:id="@+id/typeTxt"
+                android:layout_width="182dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="44dp"
+                android:visibility="invisible"
+                android:text="F ex: Pizzeria, restuarant, icecream truck"
+                app:layout_constraintStart_toEndOf="@id/typeActivityEt"
+                app:layout_constraintTop_toBottomOf="@+id/nameCompanyEt" />
+
+            <TextView
+                android:id="@+id/companyCostTxt"
+                android:layout_width="191dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="92dp"
+                android:layout_marginBottom="12dp"
+                android:textAlignment="center"
+                android:visibility="invisible"
+                android:text="Creating a company will cost 20$. The payment confirmation will be sent by your email"
+                app:layout_constraintBottom_toTopOf="@+id/createBusinessBtn"
+                app:layout_constraintStart_toStartOf="parent" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
