@@ -14,12 +14,15 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hotdogexpres.adapters.reviewAdapter
 import com.example.hotdogexpres.classes.fastfoodPlace
+import com.example.hotdogexpres.classes.menuItems
 import com.example.hotdogexpres.classes.review
 import com.example.hotdogexpres.classes.userProfile
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -27,6 +30,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import org.w3c.dom.Text
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.logging.Handler
@@ -64,6 +68,12 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
     lateinit var saveCompanyChangesBtn: Button
     lateinit var typeTxt: TextView
     lateinit var companyCostTxt: TextView
+    lateinit var addDrinksPlusImg: ImageView
+    lateinit var drinksEt: TextView
+    lateinit var addFoodEt: TextView
+    lateinit var addFoodPlusImg: ImageView
+    lateinit var textView4: TextView
+    lateinit var appBarLa: AppBarLayout
 
 
 
@@ -103,6 +113,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
         // Access interactive elements by their IDs
         val tabLayout: TabLayout = view.findViewById(R.id.tabs)
+        val menuTab: TabLayout = view.findViewById(R.id.profileMenuTabs)
         nameEt = view.findViewById(R.id.nameEt)
         cardNumber = view.findViewById(R.id.cardNumberEt)
         surname = view.findViewById(R.id.surnameEt)
@@ -124,12 +135,20 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
         saveCompanyChangesBtn = view.findViewById(R.id.saveCompanyChangesBtn)
         typeTxt = view.findViewById(R.id.typeTxt)
         companyCostTxt = view.findViewById(R.id.companyCostTxt)
+        addDrinksPlusImg = view.findViewById(R.id.addDrinksPlusImg)
+        drinksEt = view.findViewById(R.id.drinksEt)
+        addFoodEt = view.findViewById(R.id.addFoodEt)
+        addFoodPlusImg = view.findViewById(R.id.addFoodPlusImg)
+        textView4 = view.findViewById(R.id.textView4)
+        appBarLa = view.findViewById(R.id.menuAppbar)
 
 
 
         val accountDetailsTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_account_details, null)
         val showMyReviewsTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_your_reviews, null)
         val createCompanyTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_create_company, null)
+        val foodTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_food, null)
+        val drinksTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_drinks, null)
 
 
         val accountDetailsTxt = tabLayout.newTab()
@@ -143,6 +162,18 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
         val createCompanyTxt = tabLayout.newTab()
         createCompanyTxt.customView = createCompanyTab
         tabLayout.addTab(createCompanyTxt)
+
+
+        val drinksTabTxt = menuTab.newTab()
+        drinksTabTxt.customView = drinksTab
+        menuTab.addTab(drinksTabTxt)
+
+
+        val foodTabTxt = menuTab.newTab()
+        foodTabTxt.customView = foodTab
+        menuTab.addTab(foodTabTxt)
+
+
 
         saveBtn.setOnClickListener {
             saveUser()
@@ -166,6 +197,33 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
                     2 -> {
                         showMyBusiness()
                     }
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+                // Handle tab unselection
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+                // Handle tab reselection
+            }
+        })
+
+
+
+        menuTab.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                // Handle tab selection
+                when (tab.position) {
+
+                    0 -> {
+
+                    }
+
+                    1 -> {
+
+                    }
+
                 }
             }
 
@@ -311,6 +369,56 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
         }
 
 
+        addDrinksPlusImg.setOnClickListener {
+
+            val menuItem = menuItems(drinksEt.text.toString(), "drinks",
+                drinksEt.text.toString(), profileUser.userId)
+
+            if (user != null) {
+                database.collection("Hotdog Expres")
+                    .document("Fastfood places")
+                    .collection("All")
+                    .document(profileUser.userId)
+                    .collection("drinks")
+                    .document(menuItem.nameItem)
+                    .set(menuItem)
+                    .addOnSuccessListener { documentReference ->
+                        // Document added successfully
+                        Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { e ->
+                        // Error adding document
+                        Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                    }
+            }
+        }
+
+
+        addFoodPlusImg.setOnClickListener {
+            val menuItem = menuItems(addFoodEt.text.toString(), "food",
+                drinksEt.text.toString(), profileUser.userId)
+
+            if (user != null) {
+                database.collection("Hotdog Expres")
+                    .document("Fastfood places")
+                    .collection("All")
+                    .document(profileUser.userId)
+                    .collection("food")
+                    .document(menuItem.nameItem)
+                    .set(menuItem)
+                    .addOnSuccessListener { documentReference ->
+                        // Document added successfully
+                        Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { e ->
+                        // Error adding document
+                        Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
+                    }
+            }
+        }
+
+
+
 
     }
 
@@ -348,6 +456,13 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             greenMapsImg.visibility = View.GONE
             typeTxt.visibility = View.GONE
             companyCostTxt.visibility = View.GONE
+            appBarLa.visibility = View.GONE
+            textView4.visibility = View.GONE
+            drinksEt.visibility = View.GONE
+            addFoodEt.visibility = View.GONE
+            addFoodPlusImg.visibility = View.GONE
+            addDrinksPlusImg.visibility = View.GONE
+
         }
     }
 
@@ -380,6 +495,13 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             greenMapsImg.visibility = View.GONE
             typeTxt.visibility = View.GONE
             companyCostTxt.visibility = View.GONE
+            appBarLa.visibility = View.GONE
+            textView4.visibility = View.GONE
+            drinksEt.visibility = View.GONE
+            addFoodEt.visibility = View.GONE
+            addFoodPlusImg.visibility = View.GONE
+            addDrinksPlusImg.visibility = View.GONE
+
         }
     }
 
@@ -411,12 +533,26 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             greenMapsIconTxt.visibility = View.GONE
             greenMapsImg.visibility = View.GONE
             saveCompanyChangesBtn.visibility = View.GONE
+            appBarLa.visibility = View.GONE
+            textView4.visibility = View.GONE
+            drinksEt.visibility = View.GONE
+            addFoodEt.visibility = View.GONE
+            addFoodPlusImg.visibility = View.GONE
+            addDrinksPlusImg.visibility = View.GONE
+
             if (doseCompanyExist) {
                 greenMapsIconTxt.visibility = View.VISIBLE
                 greenMapsImg.visibility = View.VISIBLE
                 saveCompanyChangesBtn.visibility = View.VISIBLE
+                appBarLa.visibility = View.VISIBLE
+                textView4.visibility = View.VISIBLE
+                drinksEt.visibility = View.VISIBLE
+                addFoodEt.visibility = View.VISIBLE
+                addFoodPlusImg.visibility = View.VISIBLE
+                addDrinksPlusImg.visibility = View.VISIBLE
                 createBusinessBtn.visibility = View.GONE
                 companyCostTxt.visibility = View.GONE
+                cardNumber.visibility = View.GONE
             }
         }
     }
@@ -446,6 +582,13 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             greenMapsImg.visibility = View.GONE
             typeTxt.visibility = View.GONE
             companyCostTxt.visibility = View.GONE
+            appBarLa.visibility = View.GONE
+            textView4.visibility = View.GONE
+            drinksEt.visibility = View.GONE
+            addFoodEt.visibility = View.GONE
+            addFoodPlusImg.visibility = View.GONE
+            addDrinksPlusImg.visibility = View.GONE
+
         }
     }
 

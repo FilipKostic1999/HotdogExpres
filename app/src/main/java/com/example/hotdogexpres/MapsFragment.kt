@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.RatingBar
+import android.widget.SearchView
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
@@ -26,9 +27,11 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.hotdogexpres.adapters.menuItemAdapter
 import com.example.hotdogexpres.adapters.reviewAdapter
 import com.example.hotdogexpres.classes.fastfoodPlace
 import com.example.hotdogexpres.classes.mapSettings
+import com.example.hotdogexpres.classes.menuItems
 import com.example.hotdogexpres.classes.review
 import com.example.hotdogexpres.classes.userProfile
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -36,10 +39,12 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.tabs.TabLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -55,12 +60,13 @@ import java.util.Date
 import java.util.Locale
 
 
-class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
+class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdapter.OnDeleteClickListener {
 
     private lateinit var mapView: MapView
     private lateinit var textViewFastFoodName: TextView
     lateinit var whiteRectangleImg: ImageView
     lateinit var takeMeThereBtn: Button
+    lateinit var showMenuBtn: Button
     lateinit var typeFastFoodPlaceTxt: TextView
     lateinit var addresTxt: TextView
     lateinit var settingsImg: ImageView
@@ -82,7 +88,12 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
     lateinit var fastFoodPlaceFetchedData: fastfoodPlace
     private lateinit var recyclerView: RecyclerView
     private lateinit var myAdapter: reviewAdapter
+    private lateinit var myMenuAdapter: menuItemAdapter
+    private lateinit var menuRecyclerView: RecyclerView
     private lateinit var listOfReviews : ArrayList<review>
+    private lateinit var listOfDrinks: ArrayList<menuItems>
+    private lateinit var listOfFood: ArrayList<menuItems>
+    private lateinit var listOfMenu: ArrayList<menuItems>
     lateinit var reviewItem : review
     lateinit var writeReviewBtn: Button
     lateinit var ratingBar: RatingBar
@@ -103,6 +114,8 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
     private lateinit var destinationLatLng: LatLng
     var userProfile = userProfile("", "", "",
         "", "", "", "", "")
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -125,10 +138,16 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.setHasFixedSize(true)
         listOfReviews = arrayListOf()
+        listOfDrinks = arrayListOf()
+        listOfFood = arrayListOf()
+        listOfMenu = arrayListOf()
         myAdapter = reviewAdapter(userProfile.userId,listOfReviews)
         recyclerView.adapter = myAdapter
         myAdapter.setOnViewClickListener(this)
        // myAdapter.setOnViewClickListener(requireContext())
+
+
+
 
         mapView = view.findViewById(R.id.mapView)
         mapView.onCreate(savedInstanceState)
@@ -145,6 +164,14 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
         allReviews = view.findViewById(R.id.textView2)
         smalRedMarkerImg = view.findViewById(R.id.imageView4)
         smalCompanyImg = view.findViewById(R.id.imageView5)
+        showMenuBtn = view.findViewById(R.id.showMenuBtn)
+
+
+
+
+
+
+
 
         // Check and request location permission
         checkLocationPermission()
@@ -188,6 +215,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 allReviews.visibility = View.GONE
                 smalRedMarkerImg.visibility = View.GONE
                 smalCompanyImg.visibility = View.GONE
+                showMenuBtn.visibility = View.GONE
 
 
                 if (user != null) {
@@ -414,6 +442,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
                             allReviews.visibility = View.VISIBLE
                             smalRedMarkerImg.visibility = View.VISIBLE
                             smalCompanyImg.visibility = View.VISIBLE
+                            showMenuBtn.visibility = View.VISIBLE
 
                             destinationLatLng = marker.position
                             getReviews()
@@ -457,7 +486,145 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
         }
+
+        showMenuBtn.setOnClickListener {
+            showMenu()
+        }
+
+
     }
+
+
+
+
+
+    private fun showMenu() {
+        val builder = AlertDialog.Builder(requireContext())
+
+        // Inflate the layout for the dialog
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.menu_fastfood, null)
+        builder.setView(dialogView)
+
+        // Find the Switch in the inflated layout
+        val backBtn: Button = dialogView.findViewById(R.id.backBtn)
+
+        val dialog = builder.create()
+
+        backBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+
+
+        val tabLayout: TabLayout = dialogView.findViewById(R.id.menuTabs)
+        menuRecyclerView = dialogView.findViewById(R.id.menuRecyclerView)
+        menuRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        menuRecyclerView.setHasFixedSize(true)
+        myMenuAdapter = menuItemAdapter(userProfile.userId,listOfMenu)
+        menuRecyclerView.adapter = myMenuAdapter
+        myMenuAdapter.setOnDeleteClickListener(this)
+
+
+
+
+
+        listOfDrinks.clear()
+        listOfMenu.clear()
+        listOfFood.clear()
+        myMenuAdapter.notifyDataSetChanged()
+
+
+
+        database.collection("Hotdog Expres")
+            .document("Fastfood places")
+            .collection("All")
+            .document(selectedCompanyId)
+            .collection("drinks")
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val item = document.toObject<menuItems>()
+                    listOfDrinks.add(item)
+                }
+
+                database.collection("Hotdog Expres")
+                    .document("Fastfood places")
+                    .collection("All")
+                    .document(selectedCompanyId)
+                    .collection("food")
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        for (document in documents) {
+                            val item = document.toObject<menuItems>()
+                            listOfFood.add(item)
+                        }
+
+
+                        for (item in listOfFood) {
+                            listOfMenu.add(item)
+                        }
+                        myMenuAdapter.notifyDataSetChanged()
+
+                        val foodTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_food, null)
+                        val foodTabTxt = tabLayout.newTab()
+                        foodTabTxt.customView = foodTab
+                        tabLayout.addTab(foodTabTxt)
+
+                        val drinksTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_drinks, null)
+                        val drinksTabTxt = tabLayout.newTab()
+                        drinksTabTxt.customView = drinksTab
+                        tabLayout.addTab(drinksTabTxt)
+
+                    }
+
+            }
+
+
+
+
+
+
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                // Handle tab selection
+                when (tab.position) {
+
+                    0 -> {
+                        listOfMenu.clear()
+                        for (item in listOfFood) {
+                            listOfMenu.add(item)
+                        }
+                        myMenuAdapter.notifyDataSetChanged()
+                    }
+
+                    1 -> {
+                        listOfMenu.clear()
+                        for (item in listOfDrinks) {
+                            listOfMenu.add(item)
+                        }
+                        myMenuAdapter.notifyDataSetChanged()
+                    }
+
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+                // Handle tab unselection
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+                // Handle tab reselection
+            }
+        })
+
+
+        // Set up any additional logic or event listeners here
+
+        // Create and show the AlertDialog
+        dialog.show()
+    }
+
+
 
 
     private fun getAddressFromCoordinates(latLng: LatLng) {
@@ -599,8 +766,9 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener {
     }
 
 
-
-
+    override fun onDeleteClick(menu: menuItems) {
+        Toast.makeText(requireContext(), menu.nameItem, Toast.LENGTH_SHORT).show()
+    }
 
 
 

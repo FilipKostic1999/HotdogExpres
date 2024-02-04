@@ -309,16 +309,17 @@
                 android:layout_width="72dp"
                 android:layout_height="74dp"
                 android:layout_marginStart="4dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="16dp"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/cardNumberEt"
+                app:layout_constraintTop_toBottomOf="@id/companyAddresEt"
                 app:srcCompat="@drawable/green_maps_icon" />
 
             <TextView
                 android:id="@+id/greenMapsIconTxt"
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
                 android:layout_marginTop="32dp"
                 android:foregroundTint="#F44336"
                 android:text="You still have not placed your company on the map. Your company will appear green only to you. Just touch somewhere on the map to place it or move it around. You can always change location"
@@ -327,7 +328,7 @@
                 android:textStyle="bold"
                 android:visibility="invisible"
                 app:layout_constraintStart_toEndOf="@+id/greenMapsImg"
-                app:layout_constraintTop_toBottomOf="@id/cardNumberEt" />
+                app:layout_constraintTop_toBottomOf="@id/companyAddresEt" />
 
             <Button
                 android:id="@+id/saveCompanyChangesBtn"
@@ -341,6 +342,8 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/greenMapsIconTxt" />
 
+
+
             <TextView
                 android:id="@+id/typeTxt"
                 android:layout_width="182dp"
@@ -351,6 +354,8 @@
                 android:text="F ex: Pizzeria, restuarant, icecream truck"
                 app:layout_constraintStart_toEndOf="@id/typeActivityEt"
                 app:layout_constraintTop_toBottomOf="@+id/nameCompanyEt" />
+
+
 
             <TextView
                 android:id="@+id/companyCostTxt"
@@ -363,6 +368,112 @@
                 android:text="Creating a company will cost 20$. The payment confirmation will be sent by your email"
                 app:layout_constraintBottom_toTopOf="@+id/createBusinessBtn"
                 app:layout_constraintStart_toStartOf="parent" />
+
+
+
+
+
+            <!-- menu -->
+
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="300dp"
+                android:layout_height="58dp"
+                android:layout_marginTop="84dp"
+                android:text="Write your fastfood´s menu"
+                android:textAlignment="center"
+                android:textSize="20dp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.493"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/saveCompanyChangesBtn" />
+
+            <EditText
+                android:id="@+id/drinksEt"
+                android:layout_width="150dp"
+                android:layout_height="45dp"
+                android:layout_marginTop="64dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:ems="10"
+                android:inputType="text"
+                android:visibility="gone"
+                android:textAlignment="center"
+                android:hint="Add drinks here"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView4" />
+
+            <ImageView
+                android:id="@+id/addDrinksPlusImg"
+                android:layout_width="43dp"
+                android:layout_height="39dp"
+                android:visibility="gone"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="68dp"
+                app:layout_constraintStart_toEndOf="@+id/drinksEt"
+                app:layout_constraintTop_toBottomOf="@+id/textView4"
+                app:srcCompat="@drawable/orange_plus" />
+
+
+            <EditText
+                android:id="@+id/addFoodEt"
+                android:layout_width="150dp"
+                android:layout_height="45dp"
+                android:layout_marginTop="140dp"
+                android:background="@drawable/rounded_edittext_bg"
+                android:ems="10"
+                android:visibility="gone"
+                android:inputType="text"
+                android:hint="Add foods here"
+                android:textAlignment="center"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView4" />
+
+            <ImageView
+                android:id="@+id/addFoodPlusImg"
+                android:layout_width="43dp"
+                android:layout_height="39dp"
+                android:visibility="gone"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="144dp"
+                app:layout_constraintStart_toEndOf="@+id/addFoodEt"
+                app:layout_constraintTop_toBottomOf="@+id/textView4"
+                app:srcCompat="@drawable/orange_plus" />
+
+
+
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/menuAppbar"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/addFoodEt">
+
+
+                <!-- TabLayout -->
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/profileMenuTabs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:tabMode="scrollable" />
+
+            </com.google.android.material.appbar.AppBarLayout>
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/showMenuBusinesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="280dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/menuAppbar" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
