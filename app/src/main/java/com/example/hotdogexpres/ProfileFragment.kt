@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.hotdogexpres.adapters.menuItemAdapter
 import com.example.hotdogexpres.adapters.reviewAdapter
 import com.example.hotdogexpres.classes.fastfoodPlace
 import com.example.hotdogexpres.classes.menuItems
@@ -36,7 +37,7 @@ import java.util.Locale
 import java.util.logging.Handler
 
 
-class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
+class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdapter.OnDeleteClickListener {
 
     private lateinit var auth: FirebaseAuth
     lateinit var database : FirebaseFirestore
@@ -74,6 +75,12 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
     lateinit var addFoodPlusImg: ImageView
     lateinit var textView4: TextView
     lateinit var appBarLa: AppBarLayout
+    private lateinit var listOfDrinks: ArrayList<menuItems>
+    private lateinit var listOfFood: ArrayList<menuItems>
+    private lateinit var listOfMenu: ArrayList<menuItems>
+    private lateinit var myMenuAdapter: menuItemAdapter
+    private lateinit var menuRecyclerView: RecyclerView
+
 
 
 
@@ -144,6 +151,16 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
 
+
+
+        listOfDrinks = arrayListOf()
+        listOfFood = arrayListOf()
+        listOfMenu = arrayListOf()
+        menuRecyclerView = view.findViewById(R.id.showMenuBusinesRecyclerView)
+
+
+
+
         val accountDetailsTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_account_details, null)
         val showMyReviewsTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_your_reviews, null)
         val createCompanyTab = LayoutInflater.from(requireContext()).inflate(R.layout.custom_tab_create_company, null)
@@ -164,14 +181,16 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
         tabLayout.addTab(createCompanyTxt)
 
 
+        val foodTabTxt = menuTab.newTab()
+        foodTabTxt.customView = foodTab
+        menuTab.addTab(foodTabTxt)
+
+
         val drinksTabTxt = menuTab.newTab()
         drinksTabTxt.customView = drinksTab
         menuTab.addTab(drinksTabTxt)
 
 
-        val foodTabTxt = menuTab.newTab()
-        foodTabTxt.customView = foodTab
-        menuTab.addTab(foodTabTxt)
 
 
 
@@ -217,11 +236,19 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 when (tab.position) {
 
                     0 -> {
-
+                        listOfMenu.clear()
+                        for (item in listOfFood) {
+                            listOfMenu.add(item)
+                        }
+                        myMenuAdapter.notifyDataSetChanged()
                     }
 
                     1 -> {
-
+                        listOfMenu.clear()
+                        for (item in listOfDrinks) {
+                            listOfMenu.add(item)
+                        }
+                        myMenuAdapter.notifyDataSetChanged()
                     }
 
                 }
@@ -385,6 +412,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
                     .addOnSuccessListener { documentReference ->
                         // Document added successfully
                         Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT).show()
+                        showMenu()
                     }
                     .addOnFailureListener { e ->
                         // Error adding document
@@ -409,6 +437,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
                     .addOnSuccessListener { documentReference ->
                         // Document added successfully
                         Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT).show()
+                        showMenu()
                     }
                     .addOnFailureListener { e ->
                         // Error adding document
@@ -421,6 +450,98 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
 
 
     }
+
+
+    override fun onDeleteClick(menu: menuItems) {
+        if (menu.typeItem == "drinks") {
+            database.collection("Hotdog Expres")
+                .document("Fastfood places")
+                .collection("All")
+                .document(company.documentId)
+                .collection("drinks")
+                .document(menu.nameItem)
+                .delete()
+                .addOnSuccessListener {
+                    showMenu()
+                    Toast.makeText(requireContext(), "${menu.nameItem} deleted", Toast.LENGTH_SHORT)
+                        .show()
+                }
+        } else {
+            database.collection("Hotdog Expres")
+                .document("Fastfood places")
+                .collection("All")
+                .document(company.documentId)
+                .collection("food")
+                .document(menu.nameItem)
+                .delete()
+                .addOnSuccessListener {
+                    showMenu()
+                    Toast.makeText(requireContext(), "${menu.nameItem} deleted", Toast.LENGTH_SHORT)
+                        .show()
+                }
+        }
+
+
+    }
+
+
+
+    fun showMenu() {
+
+
+        menuRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        menuRecyclerView.setHasFixedSize(true)
+        myMenuAdapter = menuItemAdapter(userProfile.userId,listOfMenu)
+        menuRecyclerView.adapter = myMenuAdapter
+        myMenuAdapter.setOnDeleteClickListener(this)
+
+        listOfDrinks.clear()
+        listOfMenu.clear()
+        listOfFood.clear()
+        myMenuAdapter.notifyDataSetChanged()
+
+
+        database.collection("Hotdog Expres")
+            .document("Fastfood places")
+            .collection("All")
+            .document(company.documentId)
+            .collection("drinks")
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val item = document.toObject<menuItems>()
+                    listOfDrinks.add(item)
+                }
+
+                database.collection("Hotdog Expres")
+                    .document("Fastfood places")
+                    .collection("All")
+                    .document(company.documentId)
+                    .collection("food")
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        for (document in documents) {
+                            val item = document.toObject<menuItems>()
+                            listOfFood.add(item)
+                        }
+
+
+                        for (item in listOfFood) {
+                            listOfMenu.add(item)
+                        }
+                        myMenuAdapter.notifyDataSetChanged()
+
+
+
+                    }
+
+            }
+
+
+
+
+    }
+
 
 
 
@@ -462,6 +583,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             addFoodEt.visibility = View.GONE
             addFoodPlusImg.visibility = View.GONE
             addDrinksPlusImg.visibility = View.GONE
+            menuRecyclerView.visibility = View.GONE
 
         }
     }
@@ -501,6 +623,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             addFoodEt.visibility = View.GONE
             addFoodPlusImg.visibility = View.GONE
             addDrinksPlusImg.visibility = View.GONE
+            menuRecyclerView.visibility = View.GONE
 
         }
     }
@@ -539,8 +662,10 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             addFoodEt.visibility = View.GONE
             addFoodPlusImg.visibility = View.GONE
             addDrinksPlusImg.visibility = View.GONE
+            menuRecyclerView.visibility = View.GONE
 
             if (doseCompanyExist) {
+                showMenu()
                 greenMapsIconTxt.visibility = View.VISIBLE
                 greenMapsImg.visibility = View.VISIBLE
                 saveCompanyChangesBtn.visibility = View.VISIBLE
@@ -550,6 +675,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
                 addFoodEt.visibility = View.VISIBLE
                 addFoodPlusImg.visibility = View.VISIBLE
                 addDrinksPlusImg.visibility = View.VISIBLE
+                menuRecyclerView.visibility = View.VISIBLE
                 createBusinessBtn.visibility = View.GONE
                 companyCostTxt.visibility = View.GONE
                 cardNumber.visibility = View.GONE
@@ -588,7 +714,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener {
             addFoodEt.visibility = View.GONE
             addFoodPlusImg.visibility = View.GONE
             addDrinksPlusImg.visibility = View.GONE
-
+            menuRecyclerView.visibility = View.GONE
         }
     }
 
