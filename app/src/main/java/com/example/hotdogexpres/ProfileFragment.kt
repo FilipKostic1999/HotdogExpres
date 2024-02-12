@@ -3,6 +3,7 @@ package com.example.hotdogexpres
 import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
+import android.location.Geocoder
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.text.TextUtils
@@ -32,6 +33,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import org.w3c.dom.Text
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.logging.Handler
@@ -81,6 +83,10 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
     private lateinit var myMenuAdapter: menuItemAdapter
     private lateinit var menuRecyclerView: RecyclerView
 
+
+
+    var addressToCordinates = ""
+    var allowToSaveCompanyData = false
 
 
 
@@ -392,7 +398,14 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
 
 
         saveCompanyChangesBtn.setOnClickListener {
-            saveCompanyData()
+            // Convert address to coordinates and show them as a toast
+            addressToCordinates = companyAddresEt.text.toString()
+            showCoordinatesFromAddress(requireContext(), addressToCordinates)
+            if (allowToSaveCompanyData) {
+                saveCompanyData()
+            } else {
+                Toast.makeText(requireContext(), "Cannot save, this address is invalid", Toast.LENGTH_SHORT).show()
+            }
         }
 
 
@@ -449,6 +462,32 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
 
 
 
+    }
+
+    private fun showCoordinatesFromAddress(context: Context, address: String) {
+        val geocoder = Geocoder(context)
+        try {
+            val addresses = geocoder.getFromLocationName(address, 1)
+            if (addresses != null) {
+                if (addresses.isNotEmpty()) {
+                    val latitude = addresses?.get(0)?.latitude
+                    val longitude = addresses?.get(0)?.longitude
+                    if (latitude != null && longitude != null) {
+                        company.latitude = latitude
+                        company.longitude = longitude
+                        allowToSaveCompanyData = true
+                    }
+                    val toastMessage = "Latitude: $latitude, Longitude: $longitude"
+                    Toast.makeText(context, toastMessage, Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "No coordinates found for the address", Toast.LENGTH_SHORT).show()
+                    allowToSaveCompanyData = false
+                }
+            }
+        } catch (e: IOException) {
+            allowToSaveCompanyData = false
+            Toast.makeText(context, "Geocoding failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
 

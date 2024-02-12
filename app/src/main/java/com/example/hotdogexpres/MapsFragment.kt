@@ -3,18 +3,23 @@ package com.example.hotdogexpres
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.SearchManager
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.location.Address
 import android.location.Geocoder
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.SearchView
@@ -44,6 +49,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.material.tabs.TabLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -58,6 +66,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.google.android.libraries.places.api.net.PlacesClient
+import java.io.IOException
 
 
 class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdapter.OnDeleteClickListener {
@@ -117,11 +127,19 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
 
 
 
+
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        val address = "1600 Amphitheatre Parkway, Mountain View, CA"
+
+        // Convert address to coordinates and show them as a toast
+        showCoordinatesFromAddress(requireContext(), address)
+
         return inflater.inflate(R.layout.fragment_maps, container, false)
     }
 
@@ -132,6 +150,9 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
         database = Firebase.firestore
         auth = Firebase.auth
         val user = auth.currentUser
+
+
+
 
 
         recyclerView = view.findViewById(R.id.reviewRecyclerView)
@@ -495,7 +516,24 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
     }
 
 
-
+    private fun showCoordinatesFromAddress(context: Context, address: String) {
+        val geocoder = Geocoder(context)
+        try {
+            val addresses = geocoder.getFromLocationName(address, 1)
+            if (addresses != null) {
+                if (addresses.isNotEmpty()) {
+                    val latitude = addresses?.get(0)?.latitude
+                    val longitude = addresses?.get(0)?.longitude
+                    val toastMessage = "Latitude: $latitude, Longitude: $longitude"
+                    Toast.makeText(context, toastMessage, Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "No coordinates found for the address", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } catch (e: IOException) {
+            Toast.makeText(context, "Geocoding failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
 
 
     private fun showMenu() {
