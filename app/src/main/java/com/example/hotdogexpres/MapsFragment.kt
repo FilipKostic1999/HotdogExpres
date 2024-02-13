@@ -138,7 +138,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
         val address = "1600 Amphitheatre Parkway, Mountain View, CA"
 
         // Convert address to coordinates and show them as a toast
-        showCoordinatesFromAddress(requireContext(), address)
+        // showCoordinatesFromAddress(requireContext(), address)
 
         return inflater.inflate(R.layout.fragment_maps, container, false)
     }
@@ -516,6 +516,9 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
     }
 
 
+    /*
+
+
     private fun showCoordinatesFromAddress(context: Context, address: String) {
         val geocoder = Geocoder(context)
         try {
@@ -534,6 +537,8 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
             Toast.makeText(context, "Geocoding failed: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
+     */
 
 
     private fun showMenu() {
@@ -1121,7 +1126,8 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
         val reviewText = inputView.text.toString()
         val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
         var review = review(userProfile.name, reviewText,
-            rating, userProfile.userId, currentDate, selectedCompanyId)
+            rating, userProfile.userId, currentDate, selectedCompanyId,
+            userProfile.userImg)
 
 
         if (user != null) {
@@ -1143,7 +1149,8 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
 
           //  val reviewId = System.currentTimeMillis().toString() + (0..99999999).random().toString()
             review = review(userProfile.name, reviewText,
-                rating, selectedCompanyId, currentDate, selectedCompanyId)
+                rating, selectedCompanyId, currentDate, selectedCompanyId,
+                userProfile.userImg)
 
             database.collection("Hotdog Expres").document("Users")
                 .collection(user.uid).document("User profile")

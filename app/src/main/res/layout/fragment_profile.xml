@@ -7,12 +7,13 @@
 
     <ImageView
         android:id="@+id/userImg"
-        android:layout_width="140dp"
+        android:layout_width="wrap_content"
         android:layout_height="125dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/user_img" />
+        android:layout_marginBottom="40dp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:srcCompat="@drawable/user_img" />
 
 
     <androidx.appcompat.widget.Toolbar
@@ -25,7 +26,7 @@
         android:theme="?attr/actionBarTheme"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/userImg" />
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
@@ -166,7 +167,6 @@
 
 
 
-
             <TextView
                 android:id="@+id/titleTxt"
                 android:layout_width="226dp"
@@ -184,10 +184,10 @@
                 android:id="@+id/saveBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="120dp"
                 android:layout_marginTop="48dp"
                 android:backgroundTint="#8BC34A"
                 android:text="Save changes"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/phoneNumberEt" />
 
@@ -252,12 +252,12 @@
             <EditText
                 android:id="@+id/companyAddresEt"
                 android:layout_width="295dp"
-                android:layout_height="45dp"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_marginTop="260dp"
                 android:background="@drawable/rounded_edittext_bg"
                 android:ems="10"
-                android:text="Addres is set automatically as you put your company on the map"
+                android:hint="Write company location address. You can change it any time"
                 android:textAlignment="center"
                 android:visibility="invisible"
                 app:layout_constraintStart_toStartOf="parent"
@@ -283,11 +283,11 @@
                 android:id="@+id/createBusinessBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="112dp"
                 android:layout_marginTop="516dp"
                 android:backgroundTint="#FF9800"
                 android:text="Create business"
                 android:visibility="invisible"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -477,6 +477,26 @@
 
 
     </androidx.core.widget.NestedScrollView>
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="20dp"
+        android:layout_height="30dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/userImg" />
+
+    <ImageView
+        android:id="@+id/changePictureImg"
+        android:layout_width="60dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="92dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.954"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_edit" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

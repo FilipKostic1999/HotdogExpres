@@ -21,11 +21,11 @@
             android:text="Name user"
             android:textSize="20dp"
             android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/imageView"
+            app:layout_constraintStart_toEndOf="@+id/userReviewImg"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/userReviewImg"
             android:layout_width="64dp"
             android:layout_height="55dp"
             android:layout_marginTop="4dp"

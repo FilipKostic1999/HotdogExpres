@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -32,6 +33,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import com.squareup.picasso.Picasso
 import org.w3c.dom.Text
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -77,6 +79,8 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
     lateinit var addFoodPlusImg: ImageView
     lateinit var textView4: TextView
     lateinit var appBarLa: AppBarLayout
+    lateinit var userImg: ImageView
+    lateinit var changePictureImg: ImageView
     private lateinit var listOfDrinks: ArrayList<menuItems>
     private lateinit var listOfFood: ArrayList<menuItems>
     private lateinit var listOfMenu: ArrayList<menuItems>
@@ -86,13 +90,14 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
 
 
     var addressToCordinates = ""
+    var imgUrl = ""
     var allowToSaveCompanyData = false
 
 
 
     var doseCompanyExist = false
     var userProfile = userProfile("", "", "",
-        "", "", "", "", "")
+        "", "", "", "", "", "")
 
 
 
@@ -110,6 +115,9 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
         database = Firebase.firestore
         auth = Firebase.auth
         val user = auth.currentUser
+
+        company = fastfoodPlace(0.0, 0.0, "",
+            "", "", "", "")
 
 
 
@@ -154,6 +162,8 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
         addFoodPlusImg = view.findViewById(R.id.addFoodPlusImg)
         textView4 = view.findViewById(R.id.textView4)
         appBarLa = view.findViewById(R.id.menuAppbar)
+        userImg = view.findViewById(R.id.userImg)
+        changePictureImg = view.findViewById(R.id.changePictureImg)
 
 
 
@@ -163,6 +173,10 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
         listOfFood = arrayListOf()
         listOfMenu = arrayListOf()
         menuRecyclerView = view.findViewById(R.id.showMenuBusinesRecyclerView)
+
+
+
+
 
 
 
@@ -195,6 +209,36 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
         val drinksTabTxt = menuTab.newTab()
         drinksTabTxt.customView = drinksTab
         menuTab.addTab(drinksTabTxt)
+
+
+
+        changePictureImg.setOnClickListener {
+            val dialogView = layoutInflater.inflate(R.layout.change_picture_item, null)
+
+            // Set up the dialog
+            val dialog = AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create()
+
+            // Find views in the dialog
+            val saveBtn = dialogView.findViewById<Button>(R.id.saveBtn)
+            val imageUrlEt = dialogView.findViewById<EditText>(R.id.imageUrlEt)
+
+            // Set click listener for the save button
+            saveBtn.setOnClickListener {
+                // Get the text from the EditText
+                val imageUrl = imageUrlEt.text.toString()
+
+                // Dismiss the dialog when save button is clicked
+                imgUrl = imageUrl
+                Toast.makeText(requireContext(), imgUrl, Toast.LENGTH_SHORT).show()
+                saveUser()
+                dialog.dismiss()
+            }
+
+            // Show the dialog
+            dialog.show()
+        }
 
 
 
@@ -294,6 +338,18 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
                                 dateOfBirth.text = "${profileUser.dateBirth}"
                                 country.text = "${profileUser.country}"
                                 userProfile = profileUser
+                                // Load image with Picasso
+                                val imageUrl = userProfile.userImg
+                                if (imageUrl != null && imageUrl.isNotBlank()) {
+                                    Picasso.get()
+                                        .load(imageUrl)
+                                        .placeholder(R.drawable.user_img) // Placeholder image while loading
+                                        .error(R.drawable.user_img) // Error image if loading fails
+                                        .into(userImg)
+                                } else {
+                                    // Handle empty or null image URL
+                                    userImg.setImageResource(R.drawable.user_img)
+                                }
                             }
                         }
                     }
@@ -368,6 +424,8 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
             saveUser()
         }
 
+
+
         createBusinessBtn.setOnClickListener {
 
 
@@ -380,16 +438,22 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
                 isValidField(nameCompanyText) &&
                 isValidField(typeActivityText) &&
                 isValidField(companyAddressText)) {
-                val progressDialog = ProgressDialog(requireContext())
-                progressDialog.setMessage("Payment in progress...")
-                progressDialog.setCancelable(false)
-                progressDialog.show()
+                addressToCordinates = companyAddresEt.text.toString()
+                showCoordinatesFromAddress(requireContext(), addressToCordinates)
+                if (allowToSaveCompanyData) {
+                    val progressDialog = ProgressDialog(requireContext())
+                    progressDialog.setMessage("Payment in progress...")
+                    progressDialog.setCancelable(false)
+                    progressDialog.show()
 
-                // Simulate payment processing for 3 seconds
-                android.os.Handler().postDelayed({
-                    progressDialog.dismiss()
-                    createCompany()
-                }, 3000)
+                    // Simulate payment processing for 3 seconds
+                    android.os.Handler().postDelayed({
+                        progressDialog.dismiss()
+                        createCompany()
+                    }, 3000)
+                } else {
+                    Toast.makeText(requireContext(), "The address is invalid!", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 Toast.makeText(requireContext(), "There are empty fields or some of them are too short", Toast.LENGTH_SHORT).show()
             }
@@ -464,6 +528,19 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
 
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     private fun showCoordinatesFromAddress(context: Context, address: String) {
         val geocoder = Geocoder(context)
         try {
@@ -477,8 +554,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
                         company.longitude = longitude
                         allowToSaveCompanyData = true
                     }
-                    val toastMessage = "Latitude: $latitude, Longitude: $longitude"
-                    Toast.makeText(context, toastMessage, Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Your company is visible on the map on this address", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(context, "No coordinates found for the address", Toast.LENGTH_SHORT).show()
                     allowToSaveCompanyData = false
@@ -486,9 +562,12 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
             }
         } catch (e: IOException) {
             allowToSaveCompanyData = false
-            Toast.makeText(context, "Geocoding failed: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
+
+
+
 
 
     override fun onDeleteClick(menu: menuItems) {
@@ -768,7 +847,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
             surname = surname.text.toString(), email = email.text.toString(),
             adress = address.text.toString(), phoneNumber = phoneNumber.text.toString(),
             country = country.text.toString(), dateBirth = dateOfBirth.text.toString(),
-                profileUser.userId)
+                profileUser.userId, imgUrl)
 
 
 
@@ -843,7 +922,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
         val user = auth.currentUser
 
 
-            company = fastfoodPlace(0.0, 0.0,
+            company = fastfoodPlace(company.latitude, company.longitude,
             nameCompanyEt.text.toString(), "",
             typeActivityEt.text.toString(), companyAddresEt.text.toString(),
             profileUser.userId)

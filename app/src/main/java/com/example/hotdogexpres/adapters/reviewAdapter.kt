@@ -15,6 +15,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hotdogexpres.R
 import com.example.hotdogexpres.classes.review
+import com.squareup.picasso.Picasso
 
 class reviewAdapter(private val currentReviewId: String, private val listOfReviews: ArrayList<review>) :
     RecyclerView.Adapter<reviewAdapter.reviewViewHolder>() {
@@ -50,6 +51,7 @@ class reviewAdapter(private val currentReviewId: String, private val listOfRevie
     inner class reviewViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         val name: TextView = itemView.findViewById(R.id.nameUserTxt)
+        val userReviewImg: ImageView = itemView.findViewById(R.id.userReviewImg)
         var ratingBarReview: RatingBar = itemView.findViewById(R.id.ratingBarUserReview)
         val reviewText: TextView = itemView.findViewById(R.id.userReviewTxt)
         val deleteBtn: Button = itemView.findViewById(R.id.deleteBtn)
@@ -61,6 +63,19 @@ class reviewAdapter(private val currentReviewId: String, private val listOfRevie
             ratingBarReview.rating = reviews.reviewRating
             dateTxt.text = "${reviews.date}"
             deleteBtn.isVisible = false
+
+
+            if (reviews.reviewImgUrl != null && reviews.reviewImgUrl.isNotBlank()) {
+                Picasso.get()
+                    .load(reviews.reviewImgUrl)
+                    .placeholder(R.drawable.user_img) // Placeholder image while loading
+                    .error(R.drawable.user_img) // Error image if loading fails
+                    .into(userReviewImg)
+            } else {
+                // Handle empty or null image URL
+                userReviewImg.setImageResource(R.drawable.user_img)
+            }
+
 
             if (currentReviewId == reviews.reviewId) {
                 // Set visibility of the delete button based on whether it's the current user's review
