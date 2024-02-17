@@ -12,7 +12,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/menuItemNameTxt"
@@ -27,18 +27,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/menuItemDeleteBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:backgroundTint="#F44336"
-            android:text="Delete"
-            android:visibility="invisible"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toEndOf="@+id/menuItemNameTxt"
-            app:layout_constraintTop_toTopOf="parent" />
+
 
         <ImageView
             android:id="@+id/menuItemImg"
@@ -48,6 +37,20 @@
             app:layout_constraintEnd_toStartOf="@+id/menuItemNameTxt"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/pasta_img" />
+
+
+
+
+
+        <ImageView
+            android:id="@+id/menuItemDeleteBtn"
+            android:layout_width="28dp"
+            android:layout_height="27dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/ic_delete" />
+
+
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

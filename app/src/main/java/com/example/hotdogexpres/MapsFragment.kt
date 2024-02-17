@@ -67,6 +67,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.squareup.picasso.Picasso
 import java.io.IOException
 
 
@@ -266,10 +267,23 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
 
                         builder.setView(dialogView)
 
+
                         // Find the RatingBar in the dialogView
+                        val picutre = dialogView.findViewById<ImageView>(R.id.userImage)
                         val ratingBar = dialogView.findViewById<RatingBar>(R.id.ratingBar)
                         val text: TextView = dialogView.findViewById(R.id.reviewEditText)
                         text.text = reviewSavedTxt
+
+                    if (userProfile.userImg != null && userProfile.userImg.isNotBlank()) {
+                        Picasso.get()
+                            .load(userProfile.userImg)
+                            .placeholder(R.drawable.user_img) // Placeholder image while loading
+                            .error(R.drawable.user_img) // Error image if loading fails
+                            .into(picutre)
+                    } else {
+                        // Handle empty or null image URL
+                        picutre.setImageResource(R.drawable.user_img)
+                    }
 
                         // Set up the buttons
                         builder.setPositiveButton("Save") { _, _ ->

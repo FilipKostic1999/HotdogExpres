@@ -50,7 +50,7 @@ class menuItemAdapter(private val currentMenuItemId: String, private val listOfM
 
         var nameItem: TextView = itemView.findViewById(R.id.menuItemNameTxt)
         var menuItemImg: ImageView = itemView.findViewById(R.id.menuItemImg)
-        var menuItemDeleteBtn: Button = itemView.findViewById(R.id.menuItemDeleteBtn)
+        var menuItemDeleteBtn: ImageView = itemView.findViewById(R.id.menuItemDeleteBtn)
 
         fun bind(menu: menuItems) {
 

@@ -89,6 +89,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
 
 
 
+    var menuSide = 0
     var addressToCordinates = ""
     var imgUrl = ""
     var allowToSaveCompanyData = false
@@ -213,31 +214,38 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
 
 
         changePictureImg.setOnClickListener {
-            val dialogView = layoutInflater.inflate(R.layout.change_picture_item, null)
+            if (user != null) {
+                val dialogView = layoutInflater.inflate(R.layout.change_picture_item, null)
 
-            // Set up the dialog
-            val dialog = AlertDialog.Builder(requireContext())
-                .setView(dialogView)
-                .create()
+                // Set up the dialog
+                val dialog = AlertDialog.Builder(requireContext())
+                    .setView(dialogView)
+                    .create()
 
-            // Find views in the dialog
-            val saveBtn = dialogView.findViewById<Button>(R.id.saveBtn)
-            val imageUrlEt = dialogView.findViewById<EditText>(R.id.imageUrlEt)
+                // Find views in the dialog
+                val saveBtn = dialogView.findViewById<Button>(R.id.saveBtn)
+                val imageUrlEt = dialogView.findViewById<TextView>(R.id.imageUrlEt)
 
-            // Set click listener for the save button
-            saveBtn.setOnClickListener {
-                // Get the text from the EditText
-                val imageUrl = imageUrlEt.text.toString()
+                imageUrlEt.text = userProfile.userImg
 
-                // Dismiss the dialog when save button is clicked
-                imgUrl = imageUrl
-                Toast.makeText(requireContext(), imgUrl, Toast.LENGTH_SHORT).show()
-                saveUser()
-                dialog.dismiss()
+                // Set click listener for the save button
+                saveBtn.setOnClickListener {
+                    // Get the text from the EditText
+                    val imageUrl = imageUrlEt.text.toString()
+                    changeReviewsPic(imageUrl)
+
+                    // Dismiss the dialog when save button is clicked
+                    imgUrl = imageUrl
+                    Toast.makeText(requireContext(), imgUrl, Toast.LENGTH_SHORT).show()
+                    saveUser()
+                    dialog.dismiss()
+                }
+
+                // Show the dialog
+                dialog.show()
+            } else {
+                Toast.makeText(requireContext(), "Log in to change picture!", Toast.LENGTH_SHORT).show()
             }
-
-            // Show the dialog
-            dialog.show()
         }
 
 
@@ -286,19 +294,25 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
                 when (tab.position) {
 
                     0 -> {
-                        listOfMenu.clear()
-                        for (item in listOfFood) {
-                            listOfMenu.add(item)
+                        menuSide = 0
+                        if (menuSide == 0) {
+                            listOfMenu.clear()
+                            for (item in listOfFood) {
+                                listOfMenu.add(item)
+                            }
+                            myMenuAdapter.notifyDataSetChanged()
                         }
-                        myMenuAdapter.notifyDataSetChanged()
                     }
 
                     1 -> {
-                        listOfMenu.clear()
-                        for (item in listOfDrinks) {
-                            listOfMenu.add(item)
+                        menuSide = 1
+                        if (menuSide == 1) {
+                            listOfMenu.clear()
+                            for (item in listOfDrinks) {
+                                listOfMenu.add(item)
+                            }
+                            myMenuAdapter.notifyDataSetChanged()
                         }
-                        myMenuAdapter.notifyDataSetChanged()
                     }
 
                 }
@@ -475,51 +489,74 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
 
         addDrinksPlusImg.setOnClickListener {
 
-            val menuItem = menuItems(drinksEt.text.toString(), "drinks",
-                drinksEt.text.toString(), profileUser.userId)
+            if (drinksEt.text.toString().isNotEmpty()) {
+                val menuItem = menuItems(
+                    drinksEt.text.toString(), "drinks",
+                    drinksEt.text.toString(), profileUser.userId
+                )
 
-            if (user != null) {
-                database.collection("Hotdog Expres")
-                    .document("Fastfood places")
-                    .collection("All")
-                    .document(profileUser.userId)
-                    .collection("drinks")
-                    .document(menuItem.nameItem)
-                    .set(menuItem)
-                    .addOnSuccessListener { documentReference ->
-                        // Document added successfully
-                        Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT).show()
-                        showMenu()
-                    }
-                    .addOnFailureListener { e ->
-                        // Error adding document
-                        Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
-                    }
+                if (user != null) {
+                    database.collection("Hotdog Expres")
+                        .document("Fastfood places")
+                        .collection("All")
+                        .document(profileUser.userId)
+                        .collection("drinks")
+                        .document(menuItem.nameItem)
+                        .set(menuItem)
+                        .addOnSuccessListener { documentReference ->
+                            // Document added successfully
+                            Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT)
+                                .show()
+                            showMenu()
+                        }
+                        .addOnFailureListener { e ->
+                            // Error adding document
+                            Toast.makeText(
+                                requireContext(),
+                                "Something went wrong",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                }
+            } else {
+                Toast.makeText(requireContext(), "The text is blank!", Toast.LENGTH_SHORT).show()
             }
         }
 
 
         addFoodPlusImg.setOnClickListener {
-            val menuItem = menuItems(addFoodEt.text.toString(), "food",
-                drinksEt.text.toString(), profileUser.userId)
+            if (addFoodEt.text.toString().isNotEmpty()) {
+                val menuItem = menuItems(
+                    addFoodEt.text.toString(), "food",
+                    drinksEt.text.toString(), profileUser.userId
+                )
 
-            if (user != null) {
-                database.collection("Hotdog Expres")
-                    .document("Fastfood places")
-                    .collection("All")
-                    .document(profileUser.userId)
-                    .collection("food")
-                    .document(menuItem.nameItem)
-                    .set(menuItem)
-                    .addOnSuccessListener { documentReference ->
-                        // Document added successfully
-                        Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT).show()
-                        showMenu()
-                    }
-                    .addOnFailureListener { e ->
-                        // Error adding document
-                        Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
-                    }
+                if (user != null) {
+                    database.collection("Hotdog Expres")
+                        .document("Fastfood places")
+                        .collection("All")
+                        .document(profileUser.userId)
+                        .collection("food")
+                        .document(menuItem.nameItem)
+                        .set(menuItem)
+                        .addOnSuccessListener { documentReference ->
+                            // Document added successfully
+                            Toast.makeText(requireContext(), "Data saved!", Toast.LENGTH_SHORT)
+                                .show()
+                            showMenu()
+                        }
+                        .addOnFailureListener { e ->
+                            // Error adding document
+                            Toast.makeText(
+                                requireContext(),
+                                "Something went wrong",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                }
+            } else {
+                Toast.makeText(requireContext(), "The text is blank!", Toast.LENGTH_SHORT).show()
+
             }
         }
 
@@ -650,6 +687,22 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
                         myMenuAdapter.notifyDataSetChanged()
 
 
+                        if (menuSide == 0) {
+                            listOfMenu.clear()
+                            for (item in listOfFood) {
+                                listOfMenu.add(item)
+                            }
+                            myMenuAdapter.notifyDataSetChanged()
+                        } else if (menuSide == 1) {
+                                listOfMenu.clear()
+                                for (item in listOfDrinks) {
+                                    listOfMenu.add(item)
+                                }
+                                myMenuAdapter.notifyDataSetChanged()
+                            }
+
+
+
 
                     }
 
@@ -659,6 +712,69 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
 
 
     }
+
+
+
+    fun changeReviewsPic(imageUrl: String) {
+
+        val user = auth.currentUser
+        var selectedCompanyId = ""
+
+
+        for (reviews in listOfReviews) {
+            var reviewUser: review = reviews
+            reviewUser.reviewId = userProfile.userId
+            selectedCompanyId = reviews.receivingCompanyId
+            reviewUser.reviewImgUrl = imageUrl
+            if (user != null) {
+                database.collection("Hotdog Expres")
+                    .document("Fastfood places").collection("All")
+                    .document(selectedCompanyId).collection("Company reviews")
+                    .document(userProfile.userId).set(reviewUser)
+                    .addOnSuccessListener { documentReference ->
+                        // Document added successfully
+                        Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                    .addOnFailureListener { e ->
+                        // Error adding document
+                        Toast.makeText(
+                            requireContext(),
+                            "Something went wrong",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    }
+
+
+
+                database.collection("Hotdog Expres").document("Users")
+                    .collection(user.uid).document("User profile")
+                    .collection("User reviews")
+                    .document(selectedCompanyId).set(reviewUser)
+                    .addOnSuccessListener { documentReference ->
+                        // Document added successfully
+                        Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                    .addOnFailureListener { e ->
+                        // Error adding document
+                        Toast.makeText(
+                            requireContext(),
+                            "Something went wrong",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    }
+
+
+            }
+        }
+
+
+
+    }
+
 
 
 
