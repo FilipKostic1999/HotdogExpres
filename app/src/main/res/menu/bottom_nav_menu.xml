@@ -7,6 +7,11 @@
         android:title="Maps" />
 
     <item
+        android:id="@+id/nav_AI"
+        android:icon="@drawable/chatbot_img"
+        android:title="Ask AI" />
+
+    <item
         android:id="@+id/nav_profile"
         android:icon="@drawable/user_img"
         android:title="Profile"/>

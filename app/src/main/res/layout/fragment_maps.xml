@@ -6,6 +6,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
+
+
+
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="360dp"
@@ -66,7 +70,7 @@
 
             <TextView
                 android:id="@+id/textViewFastFoodName"
-                android:layout_width="224dp"
+                android:layout_width="wrap_content"
                 android:layout_height="38dp"
                 android:layout_marginStart="68dp"
                 android:layout_marginTop="12dp"
@@ -235,33 +239,21 @@
         android:id="@+id/textView"
         android:layout_width="282dp"
         android:layout_height="56dp"
-        android:layout_marginStart="24dp"
         android:layout_marginTop="4dp"
         android:text="Find fastfood nearby"
         android:textAlignment="center"
         android:textSize="28dp"
         android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-
-
-
-    <ImageView
-        android:id="@+id/imageView3"
-        android:layout_width="68dp"
-        android:layout_height="60dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="4dp"
-        app:layout_constraintStart_toEndOf="@+id/textView"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_search" />
 
     <ImageView
         android:id="@+id/settingsImg"
         android:layout_width="48dp"
         android:layout_height="38dp"
-        android:layout_marginStart="60dp"
+        android:layout_marginStart="72dp"
         android:layout_marginTop="260dp"
         app:layout_constraintStart_toStartOf="@+id/mapView"
         app:layout_constraintTop_toTopOf="@+id/mapView"

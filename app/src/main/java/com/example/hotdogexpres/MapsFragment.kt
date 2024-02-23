@@ -865,6 +865,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
                             // Document added successfully
                             Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT)
                                 .show()
+                            getReviews()
                         }
                         .addOnFailureListener { e ->
                             // Error adding document

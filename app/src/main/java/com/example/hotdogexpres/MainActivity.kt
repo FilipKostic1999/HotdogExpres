@@ -25,6 +25,11 @@ class MainActivity : AppCompatActivity() {
                     setActivityBackgroundColor(R.color.orange)
                     true
                 }
+                R.id.nav_AI -> {
+                    replaceFragment(AIfragment())
+                    setActivityBackgroundColor(R.color.white)
+                    true
+                }
                 R.id.nav_profile -> {
                     replaceFragment(ProfileFragment())
                     setActivityBackgroundColor(R.color.white)
