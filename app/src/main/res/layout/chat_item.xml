@@ -4,7 +4,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/white">
+    android:background="@color/orange">
 
     <!-- First CardView -->
     <androidx.cardview.widget.CardView
@@ -28,8 +28,8 @@
             android:id="@+id/chatImg1"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            app:layout_constraintStart_toStartOf="@+id/cons1"
-            app:layout_constraintTop_toTopOf="@+id/cons1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/chatbot_img" />
 
             <TextView
@@ -41,7 +41,7 @@
                 android:textSize="16dp"
                 android:textStyle="bold"
                 android:layout_marginEnd="30dp"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintEnd_toEndOf="@id/cons1"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toEndOf="@+id/chatImg1"
                 app:layout_constraintTop_toTopOf="@+id/chatImg1" />

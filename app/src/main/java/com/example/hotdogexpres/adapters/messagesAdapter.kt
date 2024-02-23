@@ -36,6 +36,8 @@ class MessagesAdapter(private val messages: List<messages>) :
         fun bind(message: messages) {
 
             if (message.userId.toInt() == 1) {
+                image1.visibility = View.VISIBLE
+                messageTxt1.visibility = View.VISIBLE
                 messageTxt1.text = message.text
                 image1.setImageResource(R.drawable.chatbot_img)
 
@@ -43,6 +45,8 @@ class MessagesAdapter(private val messages: List<messages>) :
                 messageTxt2.visibility = View.GONE
 
             } else if (message.userId.toInt() == 2) {
+                image2.visibility = View.VISIBLE
+                messageTxt2.visibility = View.VISIBLE
                 messageTxt2.text = message.text
                 image2.setImageResource(R.drawable.user_img)
 
