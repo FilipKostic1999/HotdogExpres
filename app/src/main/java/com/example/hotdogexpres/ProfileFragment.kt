@@ -353,10 +353,10 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
                                 country.text = "${profileUser.country}"
                                 userProfile = profileUser
                                 // Load image with Picasso
-                                val imageUrl = userProfile.userImg
-                                if (imageUrl != null && imageUrl.isNotBlank()) {
+                                imgUrl = userProfile.userImg
+                                if (userProfile.userImg != null && userProfile.userImg.isNotBlank()) {
                                     Picasso.get()
-                                        .load(imageUrl)
+                                        .load(userProfile.userImg)
                                         .placeholder(R.drawable.user_img) // Placeholder image while loading
                                         .error(R.drawable.user_img) // Error image if loading fails
                                         .into(userImg)
@@ -1129,8 +1129,7 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
                         .document(userProfile.userId).delete()
                         .addOnSuccessListener { documentReference ->
                             // Document added successfully
-                            Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT)
-                                .show()
+                            Toast.makeText(requireContext(), "Item deleted", Toast.LENGTH_SHORT).show()
                         }
                         .addOnFailureListener { e ->
                             // Error adding document
@@ -1150,8 +1149,6 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
                         .document(selectedCompanyId).delete()
                         .addOnSuccessListener { documentReference ->
                             // Document added successfully
-                            Toast.makeText(requireContext(), "Review saved!", Toast.LENGTH_SHORT)
-                                .show()
                         }
                         .addOnFailureListener { e ->
                             // Error adding document
@@ -1165,7 +1162,6 @@ class ProfileFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemA
 
 
                 }
-                Toast.makeText(requireContext(), "Item deleted", Toast.LENGTH_SHORT).show()
             }
 
             noButton.setOnClickListener {
