@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">HotdogExpres</string>
-    <string name="google_maps_key">AIzaSyD7cJy_iInuzFtyuQ1oLaa1onDz0nvEiig</string>
+    <string name="google_maps_key"></string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

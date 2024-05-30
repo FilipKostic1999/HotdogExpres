@@ -129,8 +129,6 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
 
 
 
-
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -1185,6 +1183,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
 
         }
     }
+
 
 
     private fun isNetworkConnected(): Boolean {
