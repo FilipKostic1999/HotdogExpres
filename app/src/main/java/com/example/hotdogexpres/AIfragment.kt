@@ -155,6 +155,8 @@ class AIfragment : Fragment() {
         messagesList = arrayListOf()
 
 
+
+
         database = Firebase.firestore
         auth = Firebase.auth
         val user = auth.currentUser
@@ -194,7 +196,13 @@ class AIfragment : Fragment() {
                             }
 // Sort the reviews by date (assuming date is a String)
                             messagesList.sortBy { it.messageOrder }
+
                             adapter.notifyDataSetChanged()
+
+                            recyclerView.post {
+                                recyclerView.scrollToPosition(adapter.itemCount - 1)
+                            }
+
                         }
                     }
                 }
@@ -208,24 +216,29 @@ class AIfragment : Fragment() {
 
         sendBtn.setOnClickListener {
 
-            val questionUser = askAnythingEt.text.toString()
+            if (auth.currentUser != null) {
 
-            if (questionUser.isNotEmpty()) {
-                sendMessage(questionUser, "2")
+                val questionUser = askAnythingEt.text.toString()
 
-                // AI
-                var question = dataAI
-                question += questionUser
+                if (questionUser.isNotEmpty()) {
+                    sendMessage(questionUser, "2")
 
-                askAnythingEt.text = ""
+                    // AI
+                    var question = dataAI
+                    question += questionUser
 
-                getResponse(question) {response ->
-                    activity?.runOnUiThread {
-                        android.os.Handler().postDelayed({
-                            sendMessageAI(response, "1")
-                        }, 1500)
+                    askAnythingEt.text = ""
+
+                    getResponse(question) { response ->
+                        activity?.runOnUiThread {
+                            android.os.Handler().postDelayed({
+                                sendMessageAI(response, "1")
+                            }, 1500)
+                        }
                     }
                 }
+            } else {
+                Toast.makeText(requireContext(), "You must log in to chat", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -363,7 +376,7 @@ class AIfragment : Fragment() {
     "model": "gpt-3.5-turbo-instruct",
     "prompt": "$question",
     "max_tokens": 300,
-    "temperature": 0
+    "temperature": 1
   }
         """.trimIndent()
 

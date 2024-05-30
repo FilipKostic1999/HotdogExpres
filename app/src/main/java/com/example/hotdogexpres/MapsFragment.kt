@@ -451,6 +451,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
             googleMap.setOnMarkerClickListener { marker ->
 
                 listOfReviews.clear()
+                writeReviewBtn.text = "Write a review"
                 myAdapter.notifyDataSetChanged()
 
                 val title = marker.title
@@ -847,7 +848,7 @@ class MapsFragment : Fragment(), reviewAdapter.OnViewClickListener, menuItemAdap
             val noButton: Button = dialogView.findViewById(R.id.noButton)
 
             // Set the message
-            messageTextView.text = "Are you sure you want to delete this item?"
+            messageTextView.text = "Are you sure you want to delete your review?"
 
             // Set click listeners
             yesButton.setOnClickListener {
